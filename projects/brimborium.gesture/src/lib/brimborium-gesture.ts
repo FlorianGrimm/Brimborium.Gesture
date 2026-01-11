@@ -1,9 +1,10 @@
-import { AfterViewInit, Directive, ElementRef, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, inject, input, OnDestroy, OnInit, output, signal } from '@angular/core';
 import { BrimboriumGestureInjectionToken } from './brimborium-gesture-inject-tokens';
-import type { BrimboriumGestureRoot } from './brimborium-gesture-root';
-import { BrimboriumGestureHandle } from './brimborium-gesture-handle';
 import { BrimboriumGestureList } from './brimborium-gesture-list';
+import type { BrimboriumGestureRoot } from './brimborium-gesture-root';
+import type { BrimboriumGestureHandle } from './brimborium-gesture-handle';
 import type { BrimboriumGestureName, SourceArrayValue } from './brimborium-gesture-consts';
+import { BrimboriumGestureEvent } from './brimborium-gesture-event';
 
 @Directive({
   selector: '[brimboriumGesture]',
@@ -24,6 +25,7 @@ export class BrimboriumGesture<Kind extends string = any, Data = any> implements
   readonly gestureData = input<Data>();
   readonly gestureAllowed = input<SourceArrayValue<BrimboriumGestureName>>();
 
+  readonly gestureEvent = output<BrimboriumGestureEvent>();
   readonly $isGestureHandle = signal<boolean>(false);
 
   gestureHandle: BrimboriumGestureHandle | undefined;
@@ -63,6 +65,12 @@ export class BrimboriumGesture<Kind extends string = any, Data = any> implements
   getHTMLElement() {
     const result = this.element.nativeElement as HTMLElement;
     return result;
+  }
+
+  processGestureEvent(gestureEvent: BrimboriumGestureEvent) {
+      this.gestureEvent.emit(gestureEvent);
+      this.gestureList?.processGestureEvent(gestureEvent);
+      this.gestureRoot.processGestureEvent(gestureEvent);
   }
 
 }

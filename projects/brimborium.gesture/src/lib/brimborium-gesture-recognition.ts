@@ -1,20 +1,20 @@
 import {
     BrimboriumGestureRecognitionOutcome,
     IBrimboriumGestureEffect,
-    BrimboriumGestureSourceEvent,
-    BrimboriumGestureSourceEventChain,
     IBrimboriumGestureRecognition,
     IBrimboriumGestureManager,
+    BrimboriumGestureRecognitionName,
 } from "./brimborium-gesture-consts";
+import { BrimboriumGestureSourceEvent, BrimboriumGestureSourceEventChain } from "./brimborium-gesture-source-event";
 import type { BrimboriumGestureStateMaschine } from "./brimborium-gesture-state-maschine";
 import type { GestureEventRegister } from "./brimborium-gesture-event-registery";
 
 export class BrimboriumGestureRecognition<State extends string> implements IBrimboriumGestureRecognition<State> {
-    public readonly name: string;
-    public gestureEventChain = new BrimboriumGestureSourceEventChain();
+    public readonly name: BrimboriumGestureRecognitionName;
+    public gestureEventChain: BrimboriumGestureSourceEventChain | undefined = undefined;
 
     constructor(
-        name: string,
+        name: BrimboriumGestureRecognitionName,
         state: State
     ) {
         this.name = name;
@@ -23,7 +23,7 @@ export class BrimboriumGestureRecognition<State extends string> implements IBrim
 
     initialize(
         stateMaschine: BrimboriumGestureStateMaschine,
-        manager:IBrimboriumGestureManager): void {
+        manager: IBrimboriumGestureManager): void {
     }
 
     ListEventRegister: GestureEventRegister[] = [];
@@ -33,14 +33,15 @@ export class BrimboriumGestureRecognition<State extends string> implements IBrim
     needUpdateListEventRegister: boolean = false;
 
     state: State;
+    
     readyforInputSourceEvent(): boolean { return false; }
-    process(gestureEvent: BrimboriumGestureSourceEvent): boolean {
+
+    process(gestureSourceEvent: BrimboriumGestureSourceEvent): boolean {
         return false;
     }
 
     reset(): void {
-        //this._state = BrimboriumGestureRecognitionState.Start;
-        this.gestureEventChain.reset();
+        this.gestureEventChain = undefined;
     }
 
     listOutcome: BrimboriumGestureRecognitionOutcome;

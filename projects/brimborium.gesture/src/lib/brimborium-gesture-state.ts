@@ -1,7 +1,6 @@
-import { BrimboriumGestureSourceEvent } from "./brimborium-gesture-consts";
+import { BrimboriumGestureSourceEvent } from "./brimborium-gesture-source-event";
 
 export class BrimboriumGestureState {
-    handle(gestureEvent: BrimboriumGestureSourceEvent) {
-        throw new Error("Method not implemented.");
+    handle(gestureSourceEvent: BrimboriumGestureSourceEvent) {
     }
 }

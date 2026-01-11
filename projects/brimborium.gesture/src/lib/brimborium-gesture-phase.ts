@@ -1,4 +1,4 @@
-import { BrimboriumGestureSourceEvent } from "./brimborium-gesture-consts";
+import { BrimboriumGestureSourceEvent } from "./brimborium-gesture-source-event";
 
 export class BrimboriumGesturePhase {
     constructor() { }

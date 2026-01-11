@@ -1,4 +1,6 @@
-export class BrimboriumGestureInteraction {
+import { IBrimboriumGestureInteraction } from "./brimborium-gesture-consts";
+
+export class BrimboriumGestureInteraction implements IBrimboriumGestureInteraction {
     /**
      *
      */

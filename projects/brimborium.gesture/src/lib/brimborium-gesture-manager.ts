@@ -1,19 +1,30 @@
 import { Injectable } from '@angular/core';
-import type { BrimboriumGestureNodeRef } from './brimborium-gesture-node-ref';
-import type { BrimboriumGestureRoot } from './brimborium-gesture-root';
-import { BrimboriumGestureSourceEvent, GestureSourceEventName, IBrimboriumGestureRoot, IBrimboriumGestureEventRegistery, IsInterestingOn, IBrimboriumGestureManager, BrimboriumGestureName, SourceArrayValue, IBrimboriumGestureEffect } from './brimborium-gesture-consts';
 import { BrimboriumGestureStateMaschine } from './brimborium-gesture-state-maschine';
-import { BrimboriumGestureEventRegistery } from './brimborium-gesture-event-registery';
 import { BrimboriumGestureDragEffect } from './brimborium-gesture-drag-effect';
+import { BrimboriumGestureOptions } from './brimborium-gesture-options';
+import {
+  GestureSourceEventName,
+  IBrimboriumGestureRoot,
+  IBrimboriumGestureEventRegistery,
+  IsInterestingOn,
+  IBrimboriumGestureManager,
+  BrimboriumGestureName,
+  SourceArrayValue,
+  IBrimboriumGestureEffect
+} from './brimborium-gesture-consts';
+import type { BrimboriumGestureSourceEvent } from './brimborium-gesture-source-event';
+import { BrimboriumGestureEvent } from './brimborium-gesture-event';
 
 @Injectable({
   providedIn: 'root',
 })
 export class BrimboriumGestureManager implements IBrimboriumGestureManager {
   readonly stateMaschine: BrimboriumGestureStateMaschine;
+  options: BrimboriumGestureOptions;
 
   constructor() {
-    this.stateMaschine = new BrimboriumGestureStateMaschine();
+    this.stateMaschine = new BrimboriumGestureStateMaschine(this);
+    this.options = new BrimboriumGestureOptions();
   }
 
   setGestureEventRegistery(gestureEventRegistery: IBrimboriumGestureEventRegistery) {
@@ -25,7 +36,7 @@ export class BrimboriumGestureManager implements IBrimboriumGestureManager {
   }
 
   onGestureEvent(gestureRoot: IBrimboriumGestureRoot, gestureEvent: BrimboriumGestureSourceEvent): void {
-    this.stateMaschine.onGestureEvent(gestureRoot, gestureEvent);
+    this.stateMaschine.onGestureSourceEvent(gestureRoot, gestureEvent);
   }
 
   eventPreventDefault($event: Event): void {
@@ -38,5 +49,9 @@ export class BrimboriumGestureManager implements IBrimboriumGestureManager {
 
   createDragEffect(): IBrimboriumGestureEffect {
     return new BrimboriumGestureDragEffect();
+  }
+
+  processGestureEvent(gestureEvent: BrimboriumGestureEvent): void {
+    // TODO: process gestureEvent -- handle state -- handle interaction    
   }
 }
