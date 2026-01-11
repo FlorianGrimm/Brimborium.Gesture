@@ -1,0 +1,42 @@
+<div brimboriumGestureRoot>
+    <h2>One</h2>
+
+    <div brimboriumGestureList style="width: 800px; height: 400px; background-color: #e0e0e0;">
+        @for (item of $listDataOne(); track item.id) {
+        <div style="position: absolute;">
+            <div brimboriumGesture style="position: relative;" 
+                [gestureKind]="'item'"
+                [gestureData]="item"
+                [style.left.px]="item.boundery.left"                [style.top.px]="item.boundery.top" [style.width.px]="item.boundery.width"
+                [style.height.px]="item.boundery.height" [style.background-color]="item.color"
+                >
+                {{item.text}}
+                <div brimboriumGestureHandle
+                    style="width: 20px; height: 20px; background-color: blue; border-radius: 50%;">
+                    HH
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+
+    <hr />
+    <h2>Two</h2>
+    <div brimboriumGestureList style="width: 800px; height: 400px; background-color: #c0c0c0;">
+        @for (item of $listDataTwo(); track item.id) {
+        <div style="position: absolute;">
+            <div brimboriumGesture style="position: relative;" [style.left.px]="item.boundery.left"
+                [style.top.px]="item.boundery.top" [style.width.px]="item.boundery.width"
+                [style.height.px]="item.boundery.height" [style.background-color]="item.color">
+                {{item.text}}
+                <div brimboriumGestureHandle
+                    style="width: 20px; height: 20px; background-color: blue; border-radius: 50%;">
+                    HH
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+
+
+</div>
