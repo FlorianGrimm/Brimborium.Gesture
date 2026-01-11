@@ -1,5 +1,5 @@
-import { IBrimboriumGestureInteraction } from "./brimborium-gesture-consts";
-import { BrimboriumGestureEvent } from "./brimborium-gesture-event";
+import type { IBrimboriumGestureInteraction } from "./brimborium-gesture-consts";
+import type { BrimboriumGestureEvent } from "./brimborium-gesture-event";
 
 export class BrimboriumGestureInteraction<State> implements IBrimboriumGestureInteraction<State> {
     readonly name: string;
@@ -13,12 +13,12 @@ export class BrimboriumGestureInteraction<State> implements IBrimboriumGestureIn
     }
 
     state: State;
-    
+
     process(gestureEvent: BrimboriumGestureEvent): boolean {
         return false;
     }
 
-    reset(): void {
+    reset(finished: undefined | (IBrimboriumGestureInteraction<string>[])): void {
         return;
     }
 }

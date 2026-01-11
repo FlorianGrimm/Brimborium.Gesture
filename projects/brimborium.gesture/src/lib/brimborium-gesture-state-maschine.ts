@@ -161,9 +161,14 @@ export class BrimboriumGestureStateMaschine {
     }
 
     processGestureEvent(gestureEvent: BrimboriumGestureEvent) {
-        // TODO: Think of
+        // Process the gesture event through all registered interactions
         for (const [name, interaction] of this.mapGestureInteraction) {
-            //interaction.state
+            const processed = interaction.process(gestureEvent);
+            if (processed) {
+                // Interaction handled the event
+                // Could break here if we want only one interaction to handle each event
+                // For now, let all interactions try to process it
+            }
         }
     }
 

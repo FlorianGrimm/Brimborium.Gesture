@@ -3,7 +3,7 @@ import { BrimboriumGestureInjectionToken } from './brimborium-gesture-inject-tok
 import { BrimboriumGestureList } from './brimborium-gesture-list';
 import type { BrimboriumGestureRoot } from './brimborium-gesture-root';
 import type { BrimboriumGestureHandle } from './brimborium-gesture-handle';
-import type { BrimboriumGestureName, SourceArrayValue } from './brimborium-gesture-consts';
+import type { BrimboriumGestureName, BrimboriumInteractionName, SourceArrayValue } from './brimborium-gesture-consts';
 import { BrimboriumGestureEvent } from './brimborium-gesture-event';
 
 @Directive({
@@ -24,6 +24,7 @@ export class BrimboriumGesture<Kind extends string = any, Data = any> implements
   readonly gestureKind = input<Kind>();
   readonly gestureData = input<Data>();
   readonly gestureAllowed = input<SourceArrayValue<BrimboriumGestureName>>();
+  readonly interactionAllowed = input<SourceArrayValue<BrimboriumInteractionName>>();
 
   readonly gestureEvent = output<BrimboriumGestureEvent>();
   readonly $isGestureHandle = signal<boolean>(false);

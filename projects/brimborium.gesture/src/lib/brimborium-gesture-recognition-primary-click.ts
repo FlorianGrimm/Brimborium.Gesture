@@ -1,5 +1,5 @@
 import { BrimboriumGestureRecognition } from "./brimborium-gesture-recognition";
-import { createFaultBrimboriumGestureManager, type BrimboriumGestureRecognitionName, type IBrimboriumGestureManager } from "./brimborium-gesture-consts";
+import { createFaultBrimboriumGestureManager, type BrimboriumGestureRecognitionName, type IBrimboriumGestureManager, type IBrimboriumGestureRecognition } from "./brimborium-gesture-consts";
 import type { BrimboriumGestureStateMaschine } from "./brimborium-gesture-state-maschine";
 import { BrimboriumGestureSourceEventChain, type BrimboriumGestureSourceEvent } from "./brimborium-gesture-source-event";
 import { BrimboriumGestureEvent, createKeyboardBrimboriumGestureEvent, createMouseBrimboriumGestureEvent } from "./brimborium-gesture-event";
@@ -8,6 +8,7 @@ import { Point2D } from "./point2d";
 type BrimboriumGestureRecognitionPrimaryClickState
     = 'Start'
     | 'MouseDown'
+    | 'TouchDown'
     | 'KeyDown'
     | 'Inactive'
     | 'End'
@@ -30,12 +31,19 @@ export class BrimboriumGestureRecognitionPrimaryClick extends BrimboriumGestureR
             { gestureRecognition: gestureRecognitionName, eventType: "mousemove", active: true },
             { gestureRecognition: gestureRecognitionName, eventType: "mouseup", active: true },
             { gestureRecognition: gestureRecognitionName, eventType: "keydown", active: true },
-            { gestureRecognition: gestureRecognitionName, eventType: "touchstart", active: false },
-            { gestureRecognition: gestureRecognitionName, eventType: "touchmove", active: false },
-            { gestureRecognition: gestureRecognitionName, eventType: "touchend", active: false },
-            { gestureRecognition: gestureRecognitionName, eventType: "touchcancel", active: false },
+            { gestureRecognition: gestureRecognitionName, eventType: "keyup", active: true },
+            { gestureRecognition: gestureRecognitionName, eventType: "touchstart", active: true },
+            { gestureRecognition: gestureRecognitionName, eventType: "touchmove", active: true },
+            { gestureRecognition: gestureRecognitionName, eventType: "touchend", active: true },
+            { gestureRecognition: gestureRecognitionName, eventType: "touchcancel", active: true },
         ];
         this.needUpdateListEventRegister = true;
+    }
+
+    override reset(finished: undefined | (IBrimboriumGestureRecognition<string>[])): void {
+        super.reset(finished);
+        this.state = "Start";
+        this.listOutcome = undefined;
     }
 
     override process(gestureSourceEvent: BrimboriumGestureSourceEvent): boolean {
@@ -59,10 +67,11 @@ export class BrimboriumGestureRecognitionPrimaryClick extends BrimboriumGestureR
                 const firstPoint = this.gestureEventChain!.ListPoints[0];
                 const distance = clientPos.distanceTo(firstPoint);
                 if (this.manager!.options.mouseDistanceThresholdToDrag < distance) {
-                    // ignore
+                    // Mouse moved too far - this is a drag, not a click
+                    this.state = 'Inactive';
                     return false;
                 } else {
-                    this.state = 'Inactive';
+                    // Still within threshold - continue waiting for mouseup
                     return false;
                 }
             }
@@ -70,22 +79,75 @@ export class BrimboriumGestureRecognitionPrimaryClick extends BrimboriumGestureR
                 const mouseEvent = gestureSourceEvent.$event as MouseEvent;
                 const clientPos = new Point2D(mouseEvent.clientX, mouseEvent.clientY);
                 const gestureEvent = createMouseBrimboriumGestureEvent("PrimaryClick", gestureSourceEvent, clientPos);
-                this.gestureEventChain = new BrimboriumGestureSourceEventChain(gestureSourceEvent, gestureEvent.clientPos);
+                // Append to existing chain instead of overwriting
+                this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
                 (this.listOutcome ??= []).push({ type: "gestureEvent", gestureEvent: gestureEvent });
                 this.state = 'End';
                 return true;
             }
         }
-        // touch
+        // touch events
+        if ("Start" === this.state) {
+            if ("touchstart" === gestureSourceEvent.eventType) {
+                const touchEvent = gestureSourceEvent.$event as TouchEvent;
+                if (touchEvent.touches.length === 1) {
+                    gestureSourceEvent.preventDefault();
+                    this.state = "TouchDown"; 
+                    const touch = touchEvent.touches[0];
+                    const clientPos = new Point2D(touch.clientX, touch.clientY);
+                    const gestureEvent = createMouseBrimboriumGestureEvent("TouchDown", gestureSourceEvent, clientPos);
+                    this.gestureEventChain = new BrimboriumGestureSourceEventChain(gestureSourceEvent, gestureEvent.clientPos);
+                    (this.listOutcome ??= []).push({ type: "gestureEvent", gestureEvent: gestureEvent });
+                    return true;
+                }
+            }
+        }
+        if ("MouseDown" === this.state) {
+            if ("touchmove" === gestureSourceEvent.eventType) {
+                const touchEvent = gestureSourceEvent.$event as TouchEvent;
+                if (touchEvent.touches.length === 1) {
+                    const touch = touchEvent.touches[0];
+                    const clientPos = new Point2D(touch.clientX, touch.clientY);
+                    const firstPoint = this.gestureEventChain!.ListPoints[0];
+                    const distance = clientPos.distanceTo(firstPoint);
+                    if (this.manager!.options.mouseDistanceThresholdToDrag < distance) {
+                        // Touch moved too far - this is a drag, not a tap
+                        this.state = 'Inactive';
+                        return false;
+                    } else {
+                        // Still within threshold - continue waiting for touchend
+                        return false;
+                    }
+                }
+            }
+            if ("touchend" === gestureSourceEvent.eventType) {
+                const touchEvent = gestureSourceEvent.$event as TouchEvent;
+                if (touchEvent.changedTouches.length === 1) {
+                    const touch = touchEvent.changedTouches[0];
+                    const clientPos = new Point2D(touch.clientX, touch.clientY);
+                    const gestureEvent = createMouseBrimboriumGestureEvent("PrimaryClick", gestureSourceEvent, clientPos);
+                    // Append to existing chain instead of overwriting
+                    this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
+                    (this.listOutcome ??= []).push({ type: "gestureEvent", gestureEvent: gestureEvent });
+                    this.state = 'End';
+                    return true;
+                }
+            }
+            if ("touchcancel" === gestureSourceEvent.eventType) {
+                this.state = 'Inactive';
+                return false;
+            }
+        }
 
-        // keyboard Space 
+        // keyboard Space
         if ("Start" === this.state) {
             if ("keydown" === gestureSourceEvent.eventType) {
                 const keyboardEvent = gestureSourceEvent.$event as KeyboardEvent;
                 if (' ' === keyboardEvent.key) {
                     this.state = "KeyDown";
                     gestureSourceEvent.preventDefault();
-                    this.gestureEventChain!.appendEvent(gestureSourceEvent, undefined);
+                    // Initialize gestureEventChain for keyboard events
+                    this.gestureEventChain = new BrimboriumGestureSourceEventChain(gestureSourceEvent, undefined);
                     const gestureEvent = createKeyboardBrimboriumGestureEvent("PrimaryClick", gestureSourceEvent);
                     (this.listOutcome ??= []).push({ type: "gestureEvent", gestureEvent: gestureEvent });
                     return true;

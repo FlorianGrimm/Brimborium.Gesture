@@ -10,7 +10,11 @@ export class BrimboriumGestureEvent {
         public timeStamp: DOMHighResTimeStamp /* number */,
         public clientPos: Point2D | undefined,
         public nodeRef: BrimboriumGestureNodeRef | undefined,
-        public $event: Event
+        public $event: Event,
+        public shiftKey: boolean,
+        public ctrlKey: boolean,
+        public altKey: boolean,
+        public metaKey: boolean,
     ) {
     }
 }
@@ -20,8 +24,13 @@ export function createMouseBrimboriumGestureEvent(
     gestureSourceEvent: BrimboriumGestureSourceEvent,
     clientPos: Point2D | undefined
 ): BrimboriumGestureEvent {
+    const mouseEvent = gestureSourceEvent.$event as MouseEvent;
+    let shiftKey: boolean = mouseEvent.shiftKey;
+    let ctrlKey: boolean = mouseEvent.ctrlKey;
+    let altKey: boolean = mouseEvent.altKey;
+    let metaKey: boolean = mouseEvent.metaKey;
+
     if (clientPos == null) {
-        const mouseEvent = gestureSourceEvent.$event as MouseEvent;
         clientPos = new Point2D(mouseEvent.clientX, mouseEvent.clientY);
     }
     const gestureEvent = new BrimboriumGestureEvent(
@@ -30,7 +39,44 @@ export function createMouseBrimboriumGestureEvent(
         gestureSourceEvent.timeStamp,
         clientPos,
         gestureSourceEvent.nodeRef,
-        gestureSourceEvent.$event
+        gestureSourceEvent.$event,
+        shiftKey,
+        ctrlKey,
+        altKey,
+        metaKey
+    );
+    return gestureEvent;
+}
+
+export function createTouchBrimboriumGestureEvent(
+    eventType: BrimboriumGestureEventType,
+    gestureSourceEvent: BrimboriumGestureSourceEvent,
+    clientPos: Point2D | undefined
+): BrimboriumGestureEvent {
+    const touchEvent = gestureSourceEvent.$event as TouchEvent;
+    let shiftKey: boolean = touchEvent.shiftKey;
+    let ctrlKey: boolean = touchEvent.ctrlKey;
+    let altKey: boolean = touchEvent.altKey;
+    let metaKey: boolean = touchEvent.metaKey;
+    
+    if (clientPos == null) {
+        const changedTouches = touchEvent.changedTouches;
+        if (0 < changedTouches.length) {
+            const changedTouch = changedTouches[changedTouches.length - 1];
+            clientPos = new Point2D(changedTouch.clientX, changedTouch.clientY);
+        }
+    }
+    const gestureEvent = new BrimboriumGestureEvent(
+        eventType,
+        gestureSourceEvent.target,
+        gestureSourceEvent.timeStamp,
+        clientPos,
+        gestureSourceEvent.nodeRef,
+        gestureSourceEvent.$event,
+        shiftKey,
+        ctrlKey,
+        altKey,
+        metaKey
     );
     return gestureEvent;
 }
@@ -39,13 +85,22 @@ export function createKeyboardBrimboriumGestureEvent(
     eventType: BrimboriumGestureEventType,
     gestureSourceEvent: BrimboriumGestureSourceEvent
 ): BrimboriumGestureEvent {
+    const keyboardEvent = gestureSourceEvent.$event as KeyboardEvent;
+    let shiftKey: boolean = keyboardEvent.shiftKey;
+    let ctrlKey: boolean = keyboardEvent.ctrlKey;
+    let altKey: boolean = keyboardEvent.altKey;
+    let metaKey: boolean = keyboardEvent.metaKey;
     const gestureEvent = new BrimboriumGestureEvent(
         eventType,
         gestureSourceEvent.target,
         gestureSourceEvent.timeStamp,
         undefined,
         gestureSourceEvent.nodeRef,
-        gestureSourceEvent.$event
+        gestureSourceEvent.$event,
+        shiftKey,
+        ctrlKey,
+        altKey,
+        metaKey
     );
     return gestureEvent;
 }

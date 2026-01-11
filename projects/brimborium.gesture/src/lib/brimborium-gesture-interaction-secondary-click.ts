@@ -1,29 +1,26 @@
 import { BrimboriumGestureInteraction } from "./brimborium-gesture-interaction";
 import type { BrimboriumGestureEvent } from "./brimborium-gesture-event";
+import type { Point2D } from "./point2d";
 import type { IBrimboriumGestureInteraction } from "./brimborium-gesture-consts";
 
-type BrimboriumGestureInteractionContextMenuState
+type BrimboriumGestureInteractionSecondaryClickState
     = 'Start'
-    | 'Active'
+    | 'Dragging'
     | 'End'
     ;
 
-export class BrimboriumGestureInteractionContextMenu extends BrimboriumGestureInteraction<BrimboriumGestureInteractionContextMenuState> {
+export class BrimboriumGestureInteractionSecondaryClick extends BrimboriumGestureInteraction<BrimboriumGestureInteractionSecondaryClickState> {
     constructor(){
-        super("ContextMenu", "Start")
+        super("SecondaryClick", "Start")
     }
 
     override process(gestureEvent: BrimboriumGestureEvent): boolean {
-        if (gestureEvent.eventType === "SecondaryClick") {
-            this.state = "Active";
-            // Context menu logic would go here
-            // This would typically show a context menu at the gesture position
-            return true;
-        }
+        // TODO
         return false;
     }
 
     override reset(finished: undefined | (IBrimboriumGestureInteraction<string>[])): void {
         this.state = "Start";
+        // TODO
     }
 }

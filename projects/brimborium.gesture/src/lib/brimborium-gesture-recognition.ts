@@ -40,7 +40,7 @@ export class BrimboriumGestureRecognition<State extends string> implements IBrim
         return false;
     }
 
-    reset(): void {
+    reset(finished: undefined | (IBrimboriumGestureRecognition<string>[])): void {
         this.gestureEventChain = undefined;
     }
 

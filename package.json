@@ -3,8 +3,11 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "clean": "del-cli dist/** && del-cli .angular",
     "start": "ng serve sample",
     "build": "ng build Brimborium.Gesture && ng build sample",
+    "build:prod": "ng build Brimborium.Gesture --configuration production && ng build sample --configuration production",
+    "build:dev": "ng build Brimborium.Gesture --configuration development && ng build sample --configuration development",
     "watch": "ng build --watch --configuration development",
     "test": "ng test Brimborium.Gesture"
   },
@@ -39,6 +42,7 @@
     "@vitest/browser-playwright": "^4.0.16",
     "@vitest/browser-preview": "^4.0.16",
     "@vitest/ui": "^4.0.16",
+    "del-cli": "^7.0.0",
     "jsdom": "^27.1.0",
     "ng-packagr": "^21.0.0",
     "playwright": "^1.57.0",

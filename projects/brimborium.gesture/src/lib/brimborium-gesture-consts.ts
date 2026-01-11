@@ -73,8 +73,32 @@ export const TouchGestureEventName: GestureSourceEventName[] = [
     'touchend',
 ];
 
-export type BrimboriumGestureName = string;
-
+export type BrimboriumGestureName = 
+    'PrimaryClick'
+    |'SecondaryClick'
+    |'DragNDrop'
+    |'Reposition'
+    |'Resize'
+    |'Pan'
+    |'Swipe'
+    |'Pinch'
+    |'Rotate'
+    ;
+export type BrimboriumInteractionName = 
+    'PrimaryClick'
+    |'PrimaryDoubleClick'
+    |'PrimaryLongClick'
+    |'SecondaryClick'
+    |'SecondaryDoubleClick'
+    |'SecondaryLongClick'
+    |'DragNDrop'
+    |'Reposition'
+    |'Resize'
+    |'Pan'
+    |'Swipe'
+    |'Pinch'
+    |'Rotate'
+    ;
 
 export type BrimboriumGestureEventType
     = 'MouseDown'
@@ -132,7 +156,7 @@ export interface IBrimboriumGestureInteraction<State=any> {
 
     state: State;
     process(gestureEvent: BrimboriumGestureEvent): boolean;
-    reset(): void
+    reset(finished: undefined | (IBrimboriumGestureInteraction<string>[])): void;
 
     //effect?: IBrimboriumGestureEffect
 }
@@ -142,8 +166,6 @@ export type SourceArrayValue<T> =
     | { getValue(): T[]; }
     | T[]
     | Set<T>
-    // | null 
-    // | undefined
     ;
 
 class FaultBrimboriumGestureManager implements IBrimboriumGestureManager {
