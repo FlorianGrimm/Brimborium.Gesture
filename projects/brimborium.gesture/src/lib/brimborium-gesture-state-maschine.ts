@@ -139,12 +139,7 @@ export class BrimboriumGestureStateMaschine {
             }
         }
     }
-    processGestureEvent(gestureEvent: BrimboriumGestureEvent) {
-        for (const [name, interaction] of this.mapGestureInteraction) {
-            //interaction.state
-        }
-    }
-
+    
     public mapGestureInteraction = new Map<string, IBrimboriumGestureInteraction>();
 
     public registerInteraction(
@@ -164,6 +159,14 @@ export class BrimboriumGestureStateMaschine {
     ): void {
         this.mapGestureInteraction.delete(name);
     }
+
+    processGestureEvent(gestureEvent: BrimboriumGestureEvent) {
+        // TODO: Think of
+        for (const [name, interaction] of this.mapGestureInteraction) {
+            //interaction.state
+        }
+    }
+
 
     // public ListStartDefinition: BrimboriumGestureDefinition[] = [];
     // registerDefinition(

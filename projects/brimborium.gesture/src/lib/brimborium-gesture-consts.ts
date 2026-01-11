@@ -127,8 +127,14 @@ export interface IBrimboriumGestureEffect {
     leave(): void;
 }
 
-export interface IBrimboriumGestureInteraction {
+export interface IBrimboriumGestureInteraction<State=any> {
     name:string;
+
+    state: State;
+    process(gestureEvent: BrimboriumGestureEvent): boolean;
+    reset(): void
+
+    //effect?: IBrimboriumGestureEffect
 }
 
 export type SourceArrayValue<T> =
