@@ -1,14 +1,15 @@
 import { BrimboriumGestureRecognition } from "./brimborium-gesture-recognition";
 import {
-    createFaultBrimboriumGestureManager,
     type BrimboriumGestureRecognitionName,
     type IBrimboriumGestureManager,
     type IBrimboriumGestureRecognition
 } from "./brimborium-gesture-consts";
-import type { BrimboriumGestureStateMaschine } from "./brimborium-gesture-state-maschine";
 import { BrimboriumGestureSourceEventChain, type BrimboriumGestureSourceEvent } from "./brimborium-gesture-source-event";
 import { createKeyboardBrimboriumGestureEvent, createMouseBrimboriumGestureEvent } from "./brimborium-gesture-event";
 import { Point2D } from "./point2d";
+import type { BrimboriumGestureStateMaschine } from "./brimborium-gesture-state-maschine";
+import type { BrimboriumGestureRecognitionOutcome } from "./brimborium-gesture-recognition-outcome";
+import { createFaultBrimboriumGestureManager } from "./brimborium-gesture-utils";
 
 type BrimboriumGestureRecognitionSecondaryClickState
     = 'Start'
@@ -36,21 +37,22 @@ export class BrimboriumGestureRecognitionSecondaryClick extends BrimboriumGestur
             { gestureRecognition: gestureRecognitionName, eventType: "contextmenu", active: true },
             { gestureRecognition: gestureRecognitionName, eventType: "keydown", active: true },
             { gestureRecognition: gestureRecognitionName, eventType: "keyup", active: true },
-            { gestureRecognition: gestureRecognitionName, eventType: "touchstart", active: true },
-            { gestureRecognition: gestureRecognitionName, eventType: "touchmove", active: true },
-            { gestureRecognition: gestureRecognitionName, eventType: "touchend", active: true },
-            { gestureRecognition: gestureRecognitionName, eventType: "touchcancel", active: true },
+            { gestureRecognition: gestureRecognitionName, eventType: "touchstart", active: false },
+            { gestureRecognition: gestureRecognitionName, eventType: "touchmove", active: false },
+            { gestureRecognition: gestureRecognitionName, eventType: "touchend", active: false },
+            { gestureRecognition: gestureRecognitionName, eventType: "touchcancel", active: false },
         ];
         this.needUpdateListEventRegister = true;
     }
 
-    override reset(finished: undefined | (IBrimboriumGestureRecognition<string>[])): void {
-        super.reset(finished);
+    override resetRecognition(
+        finished: undefined | (IBrimboriumGestureRecognition<string>[]),
+        outcome: BrimboriumGestureRecognitionOutcome): void {
+        super.resetRecognition(finished, outcome);
         this.state = "Start";
-        this.listOutcome = undefined;
     }
 
-    override process(gestureSourceEvent: BrimboriumGestureSourceEvent): boolean {
+    override processGestureSourceEvent(gestureSourceEvent: BrimboriumGestureSourceEvent): boolean {
         // Mouse right-click
         if ("Start" === this.state) {
             if ("mousedown" === gestureSourceEvent.eventType) {
@@ -61,7 +63,7 @@ export class BrimboriumGestureRecognitionSecondaryClick extends BrimboriumGestur
                     const clientPos = new Point2D(mouseEvent.clientX, mouseEvent.clientY);
                     const gestureEvent = createMouseBrimboriumGestureEvent("MouseDown", gestureSourceEvent, clientPos);
                     this.gestureEventChain = new BrimboriumGestureSourceEventChain(gestureSourceEvent, gestureEvent.clientPos);
-                    (this.listOutcome ??= []).push({ type: "gestureEvent", gestureEvent: gestureEvent });
+                    this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
                     return true;
                 }
             }
@@ -87,7 +89,7 @@ export class BrimboriumGestureRecognitionSecondaryClick extends BrimboriumGestur
                 const clientPos = new Point2D(mouseEvent.clientX, mouseEvent.clientY);
                 const gestureEvent = createMouseBrimboriumGestureEvent("SecondaryClick", gestureSourceEvent, clientPos);
                 this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
-                (this.listOutcome ??= []).push({ type: "gestureEvent", gestureEvent: gestureEvent });
+                this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
                 this.state = 'End';
                 return true;
             }
@@ -111,7 +113,7 @@ export class BrimboriumGestureRecognitionSecondaryClick extends BrimboriumGestur
                     const clientPos = new Point2D(touch.clientX, touch.clientY);
                     const gestureEvent = createMouseBrimboriumGestureEvent("MouseDown", gestureSourceEvent, clientPos);
                     this.gestureEventChain = new BrimboriumGestureSourceEventChain(gestureSourceEvent, gestureEvent.clientPos);
-                    (this.listOutcome ??= []).push({ type: "gestureEvent", gestureEvent: gestureEvent });
+                    this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
                     // TODO: Set up timer for long-press detection
                     return true;
                 }
@@ -151,7 +153,7 @@ export class BrimboriumGestureRecognitionSecondaryClick extends BrimboriumGestur
                     gestureSourceEvent.preventDefault();
                     this.gestureEventChain = new BrimboriumGestureSourceEventChain(gestureSourceEvent, undefined);
                     const gestureEvent = createKeyboardBrimboriumGestureEvent("SecondaryClick", gestureSourceEvent);
-                    (this.listOutcome ??= []).push({ type: "gestureEvent", gestureEvent: gestureEvent });
+                    this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
                     return true;
                 }
             }

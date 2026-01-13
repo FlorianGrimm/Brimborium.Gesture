@@ -3,13 +3,14 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "clean": "del-cli dist/** && del-cli .angular",
+    "clean": "npx del-cli dist/** && npx del-cli .angular",
     "start": "ng serve sample",
     "build": "ng build Brimborium.Gesture && ng build sample",
     "build:prod": "ng build Brimborium.Gesture --configuration production && ng build sample --configuration production",
     "build:dev": "ng build Brimborium.Gesture --configuration development && ng build sample --configuration development",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test Brimborium.Gesture"
+    "test": "npx del-cli dist/** && ng test Brimborium.Gesture",
+    "test:watch": "npx del-cli dist/** && ng test Brimborium.Gesture --watch --ui"
   },
   "prettier": {
     "printWidth": 100,

@@ -1,6 +1,7 @@
 import { BrimboriumGestureInteraction } from "./brimborium-gesture-interaction";
 import type { BrimboriumGestureEvent } from "./brimborium-gesture-event";
-import type { IBrimboriumGestureInteraction } from "./brimborium-gesture-consts";
+import type { IBrimboriumGestureInteraction, IBrimboriumGestureRecognition } from "./brimborium-gesture-consts";
+import type { BrimboriumGestureRecognitionOutcome } from "./brimborium-gesture-recognition-outcome";
 
 type BrimboriumGestureInteractionContextMenuState
     = 'Start'
@@ -9,7 +10,7 @@ type BrimboriumGestureInteractionContextMenuState
     ;
 
 export class BrimboriumGestureInteractionContextMenu extends BrimboriumGestureInteraction<BrimboriumGestureInteractionContextMenuState> {
-    constructor(){
+    constructor() {
         super("ContextMenu", "Start")
     }
 
@@ -24,6 +25,7 @@ export class BrimboriumGestureInteractionContextMenu extends BrimboriumGestureIn
     }
 
     override reset(finished: undefined | (IBrimboriumGestureInteraction<string>[])): void {
+        super.reset(finished);
         this.state = "Start";
     }
 }

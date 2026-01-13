@@ -1,14 +1,18 @@
+import { iterator } from "rxjs/internal/symbol/iterator";
 import {
-    BrimboriumGestureRecognitionOutcome,
     IBrimboriumGestureRecognition,
     IBrimboriumGestureEventRegistery,
     IBrimboriumGestureRoot,
     IBrimboriumGestureManager,
     IBrimboriumGestureInteraction,
+    BrimboriumInteractionTypeName,
+    BrimboriumGestureTypeName,
+    SourceArrayValue,
 } from "./brimborium-gesture-consts";
 import { BrimboriumGestureEvent } from "./brimborium-gesture-event";
 import type { GestureEventRegister } from "./brimborium-gesture-event-registery";
-import type { BrimboriumGestureSourceEvent } from "./brimborium-gesture-source-event";
+import { BrimboriumGestureRecognitionOutcome } from "./brimborium-gesture-recognition-outcome";
+import { combineStringAllowed, sourceArrayValueAsIteratorLike, type BrimboriumGestureSourceEvent } from "./brimborium-gesture-source-event";
 
 export class BrimboriumGestureStateMaschine {
     public gestureEventRegistery: IBrimboriumGestureEventRegistery | undefined;
@@ -23,16 +27,21 @@ export class BrimboriumGestureStateMaschine {
         this.updateEventListener();
     }
 
-    public mapGestureRecognition = new Map<string, IBrimboriumGestureRecognition>();
+    public mapGestureRecognitionByName = new Map<string, IBrimboriumGestureRecognition>();
+    public mapGestureRecognitionByType = new Map<string, IBrimboriumGestureRecognition>();
 
+    public outcome = new BrimboriumGestureRecognitionOutcome();
     public registerRecognition(
         recognition: IBrimboriumGestureRecognition
     ) {
-        let result = this.mapGestureRecognition.get(recognition.name);
+        let result = this.mapGestureRecognitionByName.get(recognition.name);
         if (result == null) {
-            this.mapGestureRecognition.set(recognition.name, recognition);
-            recognition.initialize(this, this.manager);
-            recognition.reset(undefined);
+            this.mapGestureRecognitionByName.set(recognition.name, recognition);
+            for (const recognitionType in recognition.getListSupportedGestureName()) {
+                this.mapGestureRecognitionByType.set(recognitionType, recognition);
+            }
+            recognition.initialize(this, this.manager, this.outcome);
+            recognition.resetRecognition(undefined, this.outcome);
             this.updateEventListener();
             return true;
         } else {
@@ -43,17 +52,17 @@ export class BrimboriumGestureStateMaschine {
     public getRecognition(
         name: string
     ) {
-        return this.mapGestureRecognition.get(name);
+        return this.mapGestureRecognitionByName.get(name);
     }
 
     public unregisterRecognition(
         name: string
     ) {
-        let result = this.mapGestureRecognition.get(name);
+        let result = this.mapGestureRecognitionByName.get(name);
         if (result == null) {
             return result;
         } else {
-            this.mapGestureRecognition.delete(name);
+            this.mapGestureRecognitionByName.delete(name);
             return result;
         }
     }
@@ -65,7 +74,7 @@ export class BrimboriumGestureStateMaschine {
             return false;
         } else {
             // may be called only once
-            for (const [name, recognition] of this.mapGestureRecognition.entries()) {
+            for (const [name, recognition] of this.mapGestureRecognitionByName.entries()) {
                 const listEventRegister: GestureEventRegister[] = recognition.getListEventRegister();
                 gestureEventRegistery.register(listEventRegister, name);
             }
@@ -78,11 +87,10 @@ export class BrimboriumGestureStateMaschine {
     }
 
     processGestureSourceEvent(gestureSourceEvent: BrimboriumGestureSourceEvent) {
-        let listRecognitionResult: BrimboriumGestureRecognitionOutcome = undefined;
         let listFinished: undefined | (IBrimboriumGestureRecognition<string>[]) = undefined;
         let resetRecognition = false;
         const listGestureRecognitionActive: ([string, IBrimboriumGestureRecognition][]) = [];
-        for (const nameRecognition of this.mapGestureRecognition.entries()) {
+        for (const nameRecognition of this.mapGestureRecognitionByName.entries()) {
             if ("Inactive" === nameRecognition[1].state) {
                 // ignore
             } else if ("End" === nameRecognition[1].state) {
@@ -92,11 +100,11 @@ export class BrimboriumGestureStateMaschine {
                 nameRecognition[1].getListEventRegister
             }
         }
-        for (const [name, recognition] of this.mapGestureRecognition.entries()) {
+        for (const [name, recognition] of this.mapGestureRecognitionByName.entries()) {
             if (recognition.readyforInputSourceEvent()) {
                 // const prevRecognitionState = recognition.state;
 
-                const changed = recognition.process(gestureSourceEvent);
+                const changed = recognition.processGestureSourceEvent(gestureSourceEvent);
                 if (changed) {
                     if (recognition.needUpdateListEventRegister) {
                         const gestureEventRegistery = this.gestureEventRegistery;
@@ -105,10 +113,6 @@ export class BrimboriumGestureStateMaschine {
                             gestureEventRegistery.register(listEventRegister, name);
                             recognition.needUpdateListEventRegister = false;
                         }
-                    }
-                    if (recognition.listOutcome != null) {
-                        (listRecognitionResult ??= []).push(...recognition.listOutcome);
-                        recognition.listOutcome = undefined;
                     }
                     if ('End' === recognition.state) {
                         resetRecognition = true;
@@ -119,8 +123,9 @@ export class BrimboriumGestureStateMaschine {
                 // skipped
             }
         }
-        if (listRecognitionResult != null) {
-            for (const recognitionOutcome of listRecognitionResult) {
+
+        if (this.outcome.listOutcome != null) {
+            for (const recognitionOutcome of this.outcome.listOutcome) {
                 if ("gestureEvent" === recognitionOutcome.type) {
                     // send to gesture and manager
                     const gestureEvent = recognitionOutcome.gestureEvent;
@@ -134,35 +139,43 @@ export class BrimboriumGestureStateMaschine {
             }
         }
         if (resetRecognition) {
-            for (const [name, recognition] of this.mapGestureRecognition.entries()) {
-                recognition.reset(listFinished);
+            for (const [name, recognition] of this.mapGestureRecognitionByName.entries()) {
+                recognition.resetRecognition(listFinished, this.outcome);
             }
         }
     }
-    
-    public mapGestureInteraction = new Map<string, IBrimboriumGestureInteraction>();
+
+    public mapGestureInteractionByName = new Map<string, IBrimboriumGestureInteraction>();
+    public mapGestureInteractionByType = new Map<string, IBrimboriumGestureInteraction>();
 
     public registerInteraction(
         interaction: IBrimboriumGestureInteraction
     ): void {
-        this.mapGestureInteraction.set(interaction.name, interaction);
+        this.mapGestureInteractionByName.set(interaction.name, interaction);
+        for (const interactionType in interaction.getListSupportedInteractionName()) {
+            this.mapGestureInteractionByType.set(interactionType, interaction);
+        }
     }
 
     public getInteraction(
         name: string
     ): IBrimboriumGestureInteraction | undefined {
-        return this.mapGestureInteraction.get(name);
+        return this.mapGestureInteractionByName.get(name);
     }
 
     public unregisterInteraction(
         name: string
     ): void {
-        this.mapGestureInteraction.delete(name);
+        this.mapGestureInteractionByName.delete(name);
+    }
+
+    public getGestureInteractionType(){
+        return this.mapGestureInteractionByType.keys();
     }
 
     processGestureEvent(gestureEvent: BrimboriumGestureEvent) {
         // Process the gesture event through all registered interactions
-        for (const [name, interaction] of this.mapGestureInteraction) {
+        for (const [name, interaction] of this.mapGestureInteractionByName) {
             const processed = interaction.process(gestureEvent);
             if (processed) {
                 // Interaction handled the event
@@ -172,6 +185,33 @@ export class BrimboriumGestureStateMaschine {
         }
     }
 
+    calcGestureEnabled(
+        interactionEnabled: Set<BrimboriumInteractionTypeName> | undefined,
+        gestureEnabled: SourceArrayValue<BrimboriumGestureTypeName> | undefined
+    ): Set<BrimboriumGestureTypeName> | undefined {
+
+        let result: Set<BrimboriumGestureTypeName> | undefined = undefined;
+        if ((interactionEnabled) != null && (0 < interactionEnabled.size)) {
+            if (result == null) { result = new Set(); }
+            for (const interactionName of interactionEnabled) {
+                const interaction = this.mapGestureInteractionByType.get(interactionName);
+                if (interaction != null) {
+                    const listGesture = interaction.getListNeededGesture(interactionName)
+                    for (const gesture of listGesture) {
+                        result.add(gesture);
+                    }
+                }
+            }
+        }
+        const listGestureEnabled = sourceArrayValueAsIteratorLike(gestureEnabled);
+        if (listGestureEnabled != null) {
+            if (result == null) { result = new Set(); }
+            for (const gesture of listGestureEnabled) {
+                result.add(gesture)
+            }
+        }
+        return result;
+    }
 
     // public ListStartDefinition: BrimboriumGestureDefinition[] = [];
     // registerDefinition(

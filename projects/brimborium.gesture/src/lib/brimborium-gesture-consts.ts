@@ -1,11 +1,11 @@
-import { Signal } from "@angular/core";
+import type { Signal } from "@angular/core";
 import type { GestureEventRegister } from "./brimborium-gesture-event-registery";
 import type { BrimboriumGestureStateMaschine } from "./brimborium-gesture-state-maschine";
 import type { BrimboriumGesture } from "./brimborium-gesture";
 import type { BrimboriumGestureOptions } from "./brimborium-gesture-options";
 import type { BrimboriumGestureSourceEvent } from "./brimborium-gesture-source-event";
-import { BrimboriumGestureEvent } from "./brimborium-gesture-event";
-import { publishFacade } from "@angular/compiler";
+import type { BrimboriumGestureEvent } from "./brimborium-gesture-event";
+import type { BrimboriumGestureRecognitionOutcome } from "./brimborium-gesture-recognition-outcome";
 
 export type BrimboriumGestureRecognitionName
     = 'PrimaryClick'
@@ -16,8 +16,20 @@ export type BrimboriumGestureRecognitionName
     ;
 
 export interface IBrimboriumGestureManager {
-    getGestureAllowed(): SourceArrayValue<BrimboriumGestureName> | undefined;
     options: BrimboriumGestureOptions;
+
+    // getGestureAllowed(): SourceArrayValue<BrimboriumGestureName> | undefined;
+    // getInteractionAllowed(): SourceArrayValue<BrimboriumInteractionName> | undefined;
+    getGestureEnabled(): Set<BrimboriumGestureTypeName>;
+    setGestureEnabled(name: BrimboriumGestureTypeName, isEnabled: boolean): boolean;
+    getInteractionEnabled(): Set<BrimboriumInteractionTypeName>;
+    setInteractionEnabled(name: BrimboriumInteractionTypeName, isEnabled: boolean): boolean;
+    
+    calcGestureEnabled(
+        interactionEnabled: Set<BrimboriumInteractionTypeName> | undefined, 
+        gestureEnabled: SourceArrayValue<BrimboriumGestureTypeName> | undefined
+    ): Set<BrimboriumGestureTypeName> | undefined;
+
     // readonly stateMaschine: BrimboriumGestureStateMaschine;
     // setGestureEventRegistery(gestureEventRegistery: IBrimboriumGestureEventRegistery): void;
     // isInterestingOn(eventType: GestureSourceEventName): IsInterestingOn;
@@ -73,36 +85,37 @@ export const TouchGestureEventName: GestureSourceEventName[] = [
     'touchend',
 ];
 
-export type BrimboriumGestureName = 
+export type BrimboriumGestureTypeName =
     'PrimaryClick'
-    |'SecondaryClick'
-    |'DragNDrop'
-    |'Reposition'
-    |'Resize'
-    |'Pan'
-    |'Swipe'
-    |'Pinch'
-    |'Rotate'
+    | 'SecondaryClick'
+    | 'DragNDrop'
+    | 'Reposition'
+    | 'Resize'
+    | 'Pan'
+    | 'Swipe'
+    | 'Pinch'
+    | 'Rotate'
     ;
-export type BrimboriumInteractionName = 
+export type BrimboriumInteractionTypeName =
     'PrimaryClick'
-    |'PrimaryDoubleClick'
-    |'PrimaryLongClick'
-    |'SecondaryClick'
-    |'SecondaryDoubleClick'
-    |'SecondaryLongClick'
-    |'DragNDrop'
-    |'Reposition'
-    |'Resize'
-    |'Pan'
-    |'Swipe'
-    |'Pinch'
-    |'Rotate'
+    | 'PrimaryDoubleClick'
+    | 'PrimaryLongClick'
+    | 'SecondaryClick'
+    | 'SecondaryDoubleClick'
+    | 'SecondaryLongClick'
+    | 'DragNDrop'
+    | 'Reposition'
+    | 'Resize'
+    | 'Pan'
+    | 'Swipe'
+    | 'Pinch'
+    | 'Rotate'
     ;
 
 export type BrimboriumGestureEventType
     = 'MouseDown'
     | 'MouseMove'
+    | 'TouchDown'
     | 'PrimaryClick'
     | 'SecondaryClick'
     | 'DragStart'
@@ -125,22 +138,26 @@ export interface IBrimboriumGestureRecognition<State extends string = string> {
     // get state(): BrimboriumGestureRecognitionState;
     // setState(value: BrimboriumGestureRecognitionState):void;
 
+    getListSupportedGestureName(): BrimboriumGestureTypeName[];
+
     initialize(
         stateMaschine: BrimboriumGestureStateMaschine,
-        manager: IBrimboriumGestureManager): void;
+        manager: IBrimboriumGestureManager,
+        listOutcome: BrimboriumGestureRecognitionOutcome): void;
 
     getListEventRegister(): GestureEventRegister[];
     needUpdateListEventRegister: boolean;
 
     state: State;
     readyforInputSourceEvent(): boolean;
-    process(gestureSourceEvent: BrimboriumGestureSourceEvent): boolean;
-    reset(finished: undefined | (IBrimboriumGestureRecognition<string>[])): void;
+    processGestureSourceEvent(gestureSourceEvent: BrimboriumGestureSourceEvent): boolean;
+    resetRecognition(
+        finished: undefined | (IBrimboriumGestureRecognition<string>[]),
+        listOutcome: BrimboriumGestureRecognitionOutcome): void;
 
-    listOutcome: BrimboriumGestureRecognitionOutcome;
+    outcome: BrimboriumGestureRecognitionOutcome;
 }
 
-export type BrimboriumGestureRecognitionOutcome = undefined | ArrayBrimboriumGestureRecognitionOutcome;
 export type ArrayBrimboriumGestureRecognitionOutcome = ItemBrimboriumGestureRecognitionOutcome[];
 export type ItemBrimboriumGestureRecognitionOutcome
     = { type: 'gestureEvent'; gestureEvent: BrimboriumGestureEvent }
@@ -151,8 +168,11 @@ export interface IBrimboriumGestureEffect {
     leave(): void;
 }
 
-export interface IBrimboriumGestureInteraction<State=any> {
-    name:string;
+export interface IBrimboriumGestureInteraction<State = any> {
+    name: string;
+
+    getListSupportedInteractionName(): readonly BrimboriumInteractionTypeName[];
+    getListNeededGesture(interactionName: BrimboriumInteractionTypeName): readonly BrimboriumGestureTypeName[];
 
     state: State;
     process(gestureEvent: BrimboriumGestureEvent): boolean;
@@ -167,13 +187,3 @@ export type SourceArrayValue<T> =
     | T[]
     | Set<T>
     ;
-
-class FaultBrimboriumGestureManager implements IBrimboriumGestureManager {
-    getGestureAllowed(): SourceArrayValue<BrimboriumGestureName> | undefined { throw new Error("Not Allowed."); }
-    public get options(): BrimboriumGestureOptions { throw new Error("Not Allowed."); }
-    public set options(value: BrimboriumGestureOptions) { throw new Error("Not Allowed."); }
-    eventPreventDefault($event: Event): void { throw new Error("Not Allowed."); }
-    processGestureEvent(gestureEvent: BrimboriumGestureEvent): void { throw new Error("Not Allowed."); }
-}
-const faultBrimboriumGestureManager = new FaultBrimboriumGestureManager();
-export function createFaultBrimboriumGestureManager(): IBrimboriumGestureManager { return faultBrimboriumGestureManager; }

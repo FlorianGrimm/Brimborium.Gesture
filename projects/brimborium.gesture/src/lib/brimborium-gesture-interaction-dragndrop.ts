@@ -1,7 +1,8 @@
 import { BrimboriumGestureInteraction } from "./brimborium-gesture-interaction";
 import type { BrimboriumGestureEvent } from "./brimborium-gesture-event";
 import type { Point2D } from "./point2d";
-import type { IBrimboriumGestureInteraction } from "./brimborium-gesture-consts";
+import type { IBrimboriumGestureInteraction, IBrimboriumGestureRecognition } from "./brimborium-gesture-consts";
+import { BrimboriumGestureRecognitionOutcome } from "./brimborium-gesture-recognition-outcome";
 
 type BrimboriumGestureInteractionDragNDropState
     = 'Start'
@@ -15,7 +16,7 @@ export class BrimboriumGestureInteractionDragNDrop extends BrimboriumGestureInte
     private draggedElement: HTMLElement | undefined;
     private dropTarget: HTMLElement | undefined;
 
-    constructor(){
+    constructor() {
         super("DragNDrop", "Start")
     }
 
@@ -102,6 +103,7 @@ export class BrimboriumGestureInteractionDragNDrop extends BrimboriumGestureInte
     }
 
     override reset(finished: undefined | (IBrimboriumGestureInteraction<string>[])): void {
+        super.reset(finished);
         this.state = "Start";
         this.startPos = undefined;
         this.currentPos = undefined;

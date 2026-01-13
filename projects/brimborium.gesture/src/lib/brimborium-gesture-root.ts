@@ -13,7 +13,9 @@ import { BrimboriumGestureSourceEvent } from './brimborium-gesture-source-event'
 @Directive({
   selector: '[brimboriumGestureRoot]',
   exportAs: 'brimboriumGestureRoot',
-  providers: [{ provide: BrimboriumGestureInjectionToken.BrimboriumGestureRoot, useExisting: BrimboriumGestureRoot }],
+  providers: [
+    { provide: BrimboriumGestureInjectionToken.BrimboriumGestureRoot, useExisting: BrimboriumGestureRoot }
+  ],
 })
 export class BrimboriumGestureRoot implements IBrimboriumGestureRoot, OnInit, OnDestroy {
   public readonly element = inject(ElementRef);

@@ -7,7 +7,7 @@ import { BrimboriumGestureList } from "./brimborium-gesture-list";
 
 @NgModule({
     providers:[
-        BrimboriumGestureManager
+        BrimboriumGestureManager,
     ],
     imports:[
         BrimboriumGesture,

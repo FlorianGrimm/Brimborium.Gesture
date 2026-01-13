@@ -1,13 +1,15 @@
 import {
-    BrimboriumGestureRecognitionOutcome,
     IBrimboriumGestureEffect,
     IBrimboriumGestureRecognition,
     IBrimboriumGestureManager,
     BrimboriumGestureRecognitionName,
+    ItemBrimboriumGestureRecognitionOutcome,
+    BrimboriumGestureTypeName,
 } from "./brimborium-gesture-consts";
 import { BrimboriumGestureSourceEvent, BrimboriumGestureSourceEventChain } from "./brimborium-gesture-source-event";
 import type { BrimboriumGestureStateMaschine } from "./brimborium-gesture-state-maschine";
 import type { GestureEventRegister } from "./brimborium-gesture-event-registery";
+import { BrimboriumGestureRecognitionOutcome } from "./brimborium-gesture-recognition-outcome";
 
 export class BrimboriumGestureRecognition<State extends string> implements IBrimboriumGestureRecognition<State> {
     public readonly name: BrimboriumGestureRecognitionName;
@@ -19,11 +21,16 @@ export class BrimboriumGestureRecognition<State extends string> implements IBrim
     ) {
         this.name = name;
         this.state = state;
+        this.outcome=new BrimboriumGestureRecognitionOutcome();
     }
+
+    getListSupportedGestureName(): BrimboriumGestureTypeName[] { return []; }
 
     initialize(
         stateMaschine: BrimboriumGestureStateMaschine,
-        manager: IBrimboriumGestureManager): void {
+        manager: IBrimboriumGestureManager,
+        outcome: BrimboriumGestureRecognitionOutcome): void {
+        this.outcome = outcome;
     }
 
     ListEventRegister: GestureEventRegister[] = [];
@@ -33,17 +40,21 @@ export class BrimboriumGestureRecognition<State extends string> implements IBrim
     needUpdateListEventRegister: boolean = false;
 
     state: State;
-    
+
     readyforInputSourceEvent(): boolean { return false; }
 
-    process(gestureSourceEvent: BrimboriumGestureSourceEvent): boolean {
+    processGestureSourceEvent(gestureSourceEvent: BrimboriumGestureSourceEvent): boolean {
         return false;
     }
 
-    reset(finished: undefined | (IBrimboriumGestureRecognition<string>[])): void {
+    resetRecognition(
+        finished: undefined | (IBrimboriumGestureRecognition<string>[]),
+        outcome: BrimboriumGestureRecognitionOutcome
+        ): void {
+        this.outcome = outcome;
         this.gestureEventChain = undefined;
     }
 
-    listOutcome: BrimboriumGestureRecognitionOutcome;
+    outcome: BrimboriumGestureRecognitionOutcome;
 }
 

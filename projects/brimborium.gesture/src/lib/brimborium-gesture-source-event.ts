@@ -1,5 +1,5 @@
 import { isSignal } from "@angular/core";
-import type { BrimboriumGestureName, GestureSourceEventName, IBrimboriumGestureManager, SourceArrayValue } from "./brimborium-gesture-consts";
+import type { BrimboriumGestureTypeName, BrimboriumInteractionTypeName, GestureSourceEventName, IBrimboriumGestureManager, SourceArrayValue } from "./brimborium-gesture-consts";
 import type { BrimboriumGestureNodeRef } from "./brimborium-gesture-node-ref";
 import type { Point2D } from "./point2d";
 
@@ -30,12 +30,23 @@ export class BrimboriumGestureSourceEvent {
     public eventPreventDefault: boolean = false;
     public preventDefault() { this.eventPreventDefault = true; }
 
-    private _GestureAllowed: Set<BrimboriumGestureName> | null | undefined = null;
-    public getGestureAllowed(): Set<BrimboriumGestureName> | undefined {
-        if (this._GestureAllowed !== null) { return this._GestureAllowed; }
-        return this._GestureAllowed = combineGestureAllowed(
-            this.manager.getGestureAllowed(),
-            this.nodeRef?.gesture?.gestureAllowed());
+    private _GestureEnabled: Set<BrimboriumGestureTypeName> | null | undefined = null;
+    public getGestureEnabled(): Set<BrimboriumGestureTypeName> | undefined {
+        if (this._GestureEnabled !== null) { return this._GestureEnabled; }
+
+        const interactionEnabled = this.getInteractionEnabled();
+        const gestureEnabled = this.nodeRef?.gesture?.gestureEnabled()
+        return this.manager.calcGestureEnabled(interactionEnabled, gestureEnabled);
+    }
+
+    private _InteractionEnabled: Set<BrimboriumInteractionTypeName> | null | undefined = null;
+    public getInteractionEnabled() {
+        if (this._InteractionEnabled !== null) { return this._InteractionEnabled; }
+
+        return combineStringAllowed<BrimboriumInteractionTypeName>(
+            this.manager.getInteractionEnabled(),
+            this.nodeRef?.gesture?.interactionEnabled()
+        );
     }
 }
 
@@ -68,10 +79,11 @@ export class BrimboriumGestureSourceEventChain {
     }
 }
 
-export function combineGestureAllowed(
-    value1: SourceArrayValue<BrimboriumGestureName> | null | undefined,
-    value2: SourceArrayValue<BrimboriumGestureName> | null | undefined
-): Set<BrimboriumGestureName> | undefined {
+// BrimboriumGestureName
+export function combineStringAllowed<T>(
+    value1: SourceArrayValue<T> | null | undefined,
+    value2: SourceArrayValue<T> | null | undefined
+): Set<T> | undefined {
     if (value1 == null && value2 == null) { return undefined }
     let listValue1 = sourceArrayValueAsIteratorLike(value1);
     let listValue2 = sourceArrayValueAsIteratorLike(value2);
@@ -80,13 +92,13 @@ export function combineGestureAllowed(
         return undefined;
     }
     if (listValue1 != null && listValue2 == null) {
-        return new Set<BrimboriumGestureName>(listValue1);
+        return new Set<T>(listValue1);
     }
     if (listValue1 == null && listValue2 != null) {
-        return new Set<BrimboriumGestureName>(listValue2);
+        return new Set<T>(listValue2);
     }
     if (listValue1 != null && listValue2 != null) {
-        let result = new Set<BrimboriumGestureName>(listValue1);
+        let result = new Set<T>(listValue1);
         for (const value of listValue2) {
             result.add(value);
         }
@@ -95,8 +107,8 @@ export function combineGestureAllowed(
     return undefined;
 }
 
-function sourceArrayValueAsIteratorLike(value1: SourceArrayValue<BrimboriumGestureName> | null | undefined) {
-    let result: BrimboriumGestureName[] | SetIterator<BrimboriumGestureName> | undefined = undefined;
+export function sourceArrayValueAsIteratorLike<T>(value1: SourceArrayValue<T> | null | undefined) {
+    let result: T[] | SetIterator<T> | undefined = undefined;
     if (value1 == null) {
         result = undefined;
     } else if (Array.isArray(value1)) {

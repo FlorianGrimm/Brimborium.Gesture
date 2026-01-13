@@ -1,10 +1,11 @@
 import { BrimboriumGestureRecognition } from "./brimborium-gesture-recognition";
 import {
-    createFaultBrimboriumGestureManager,
     type BrimboriumGestureRecognitionName,
     type IBrimboriumGestureManager
 } from "./brimborium-gesture-consts";
 import type { BrimboriumGestureStateMaschine } from "./brimborium-gesture-state-maschine";
+import type { BrimboriumGestureRecognitionOutcome } from "./brimborium-gesture-recognition-outcome";
+import { createFaultBrimboriumGestureManager } from "./brimborium-gesture-utils";
 
 type BrimboriumGestureRecognitionContextMenuState
     = 'Start'
@@ -21,8 +22,12 @@ export class BrimboriumGestureRecognitionContextMenu extends BrimboriumGestureRe
         super(gestureRecognitionName, "Start");
     }
 
-    override initialize(stateMaschine: BrimboriumGestureStateMaschine, manager: IBrimboriumGestureManager): void {
-        this.manager = manager;
+    override initialize(
+            stateMaschine: BrimboriumGestureStateMaschine,
+            manager: IBrimboriumGestureManager,
+            outcome: BrimboriumGestureRecognitionOutcome): void {
+            this.manager = manager;
+            this.outcome = outcome;
         this.ListEventRegister = [
             // { gestureRecognition: gestureRecognitionName, eventType: "mousedown", active: true },
             // { gestureRecognition: gestureRecognitionName, eventType: "mousemove", active: true },
