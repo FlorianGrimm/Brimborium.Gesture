@@ -16,7 +16,7 @@ export type BrimboriumGestureRecognitionName
     ;
 
 export interface IBrimboriumGestureManager {
-    options: BrimboriumGestureOptions;
+    readonly options: BrimboriumGestureOptions;
 
     // getGestureAllowed(): SourceArrayValue<BrimboriumGestureName> | undefined;
     // getInteractionAllowed(): SourceArrayValue<BrimboriumInteractionName> | undefined;

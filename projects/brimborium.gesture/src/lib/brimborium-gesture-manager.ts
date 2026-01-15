@@ -32,7 +32,7 @@ import { BrimboriumGestureInteractionReposition } from './brimborium-gesture-int
 })
 export class BrimboriumGestureManager implements IBrimboriumGestureManager {
   readonly stateMaschine: BrimboriumGestureStateMaschine;
-  options: BrimboriumGestureOptions;
+  readonly options: BrimboriumGestureOptions;
 
   constructor() {
     this.stateMaschine = new BrimboriumGestureStateMaschine(this);
@@ -77,6 +77,8 @@ export class BrimboriumGestureManager implements IBrimboriumGestureManager {
   }
   
   */
+ getListRecognitionTypeName(){  return this.stateMaschine.getListRecognitionTypeName(); }
+ getListInteractionTypeName(){  return this.stateMaschine.getListInteractionTypeName(); }
 
   readonly gestureEnabled = new Set<BrimboriumGestureTypeName>();
   getGestureEnabled(): Set<BrimboriumGestureTypeName> {

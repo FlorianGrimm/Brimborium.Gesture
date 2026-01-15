@@ -4,8 +4,14 @@
   "compileOnSave": false,
   "compilerOptions": {
     "paths": {
+      "Brimborium.Data": [
+        "./dist/brimborium.data"
+      ],
       "Brimborium.Gesture": [
         "./dist/brimborium.gesture"
+      ],
+      "Brimborium.Overlay": [
+        "./dist/brimborium.overlay"
       ]
     },
     "strict": true,
@@ -39,6 +45,18 @@
     },
     {
       "path": "./projects/sample/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/brimborium.overlay/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/brimborium.overlay/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/brimborium.data/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/brimborium.data/tsconfig.spec.json"
     }
   ]
 }

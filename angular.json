@@ -103,6 +103,58 @@
           }
         }
       }
+    },
+    "Brimborium.Overlay": {
+      "projectType": "library",
+      "root": "projects/brimborium.overlay",
+      "sourceRoot": "projects/brimborium.overlay/src",
+      "prefix": "brimboriumOverlay",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/brimborium.overlay/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/brimborium.overlay/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "projects/brimborium.overlay/tsconfig.spec.json"
+          }
+        }
+      }
+    },
+    "Brimborium.Data": {
+      "projectType": "library",
+      "root": "projects/brimborium.data",
+      "sourceRoot": "projects/brimborium.data/src",
+      "prefix": "brimboriumData",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/brimborium.data/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/brimborium.data/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "projects/brimborium.data/tsconfig.spec.json"
+          }
+        }
+      }
     }
   }
 }

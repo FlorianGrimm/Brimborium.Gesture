@@ -10,7 +10,7 @@ describe('BrimboriumGestureManager', () => {
     service = TestBed.inject(BrimboriumGestureManager);
   });
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
+  it('getListRecognitionTypeName', () => {
+    expect(Array.from(service.getListRecognitionTypeName())).toStrictEqual(["PrimaryClick",]);
   });
 });

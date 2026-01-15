@@ -27,18 +27,18 @@ export class BrimboriumGestureStateMaschine {
         this.updateEventListener();
     }
 
-    public mapGestureRecognitionByName = new Map<string, IBrimboriumGestureRecognition>();
-    public mapGestureRecognitionByType = new Map<string, IBrimboriumGestureRecognition>();
+    public mapRecognitionByName = new Map<string, IBrimboriumGestureRecognition>();
+    public mapRecognitionByType = new Map<string, IBrimboriumGestureRecognition>();
 
     public outcome = new BrimboriumGestureRecognitionOutcome();
     public registerRecognition(
         recognition: IBrimboriumGestureRecognition
     ) {
-        let result = this.mapGestureRecognitionByName.get(recognition.name);
+        let result = this.mapRecognitionByName.get(recognition.name);
         if (result == null) {
-            this.mapGestureRecognitionByName.set(recognition.name, recognition);
-            for (const recognitionType in recognition.getListSupportedGestureName()) {
-                this.mapGestureRecognitionByType.set(recognitionType, recognition);
+            this.mapRecognitionByName.set(recognition.name, recognition);
+            for (const recognitionType of recognition.getListSupportedGestureName()) {
+                this.mapRecognitionByType.set(recognitionType, recognition);
             }
             recognition.initialize(this, this.manager, this.outcome);
             recognition.resetRecognition(undefined, this.outcome);
@@ -52,19 +52,23 @@ export class BrimboriumGestureStateMaschine {
     public getRecognition(
         name: string
     ) {
-        return this.mapGestureRecognitionByName.get(name);
+        return this.mapRecognitionByName.get(name);
     }
 
     public unregisterRecognition(
         name: string
     ) {
-        let result = this.mapGestureRecognitionByName.get(name);
+        let result = this.mapRecognitionByName.get(name);
         if (result == null) {
             return result;
         } else {
-            this.mapGestureRecognitionByName.delete(name);
+            this.mapRecognitionByName.delete(name);
             return result;
         }
+    }
+
+    public getListRecognitionTypeName(){
+        return this.mapRecognitionByType.keys();
     }
 
     public updateEventListener() {
@@ -74,7 +78,7 @@ export class BrimboriumGestureStateMaschine {
             return false;
         } else {
             // may be called only once
-            for (const [name, recognition] of this.mapGestureRecognitionByName.entries()) {
+            for (const [name, recognition] of this.mapRecognitionByName.entries()) {
                 const listEventRegister: GestureEventRegister[] = recognition.getListEventRegister();
                 gestureEventRegistery.register(listEventRegister, name);
             }
@@ -90,7 +94,7 @@ export class BrimboriumGestureStateMaschine {
         let listFinished: undefined | (IBrimboriumGestureRecognition<string>[]) = undefined;
         let resetRecognition = false;
         const listGestureRecognitionActive: ([string, IBrimboriumGestureRecognition][]) = [];
-        for (const nameRecognition of this.mapGestureRecognitionByName.entries()) {
+        for (const nameRecognition of this.mapRecognitionByName.entries()) {
             if ("Inactive" === nameRecognition[1].state) {
                 // ignore
             } else if ("End" === nameRecognition[1].state) {
@@ -100,7 +104,7 @@ export class BrimboriumGestureStateMaschine {
                 nameRecognition[1].getListEventRegister
             }
         }
-        for (const [name, recognition] of this.mapGestureRecognitionByName.entries()) {
+        for (const [name, recognition] of this.mapRecognitionByName.entries()) {
             if (recognition.readyforInputSourceEvent()) {
                 // const prevRecognitionState = recognition.state;
 
@@ -139,43 +143,43 @@ export class BrimboriumGestureStateMaschine {
             }
         }
         if (resetRecognition) {
-            for (const [name, recognition] of this.mapGestureRecognitionByName.entries()) {
+            for (const [name, recognition] of this.mapRecognitionByName.entries()) {
                 recognition.resetRecognition(listFinished, this.outcome);
             }
         }
     }
 
-    public mapGestureInteractionByName = new Map<string, IBrimboriumGestureInteraction>();
-    public mapGestureInteractionByType = new Map<string, IBrimboriumGestureInteraction>();
+    public mapInteractionByName = new Map<string, IBrimboriumGestureInteraction>();
+    public mapInteractionByType = new Map<string, IBrimboriumGestureInteraction>();
 
     public registerInteraction(
         interaction: IBrimboriumGestureInteraction
     ): void {
-        this.mapGestureInteractionByName.set(interaction.name, interaction);
+        this.mapInteractionByName.set(interaction.name, interaction);
         for (const interactionType in interaction.getListSupportedInteractionName()) {
-            this.mapGestureInteractionByType.set(interactionType, interaction);
+            this.mapInteractionByType.set(interactionType, interaction);
         }
     }
 
     public getInteraction(
         name: string
     ): IBrimboriumGestureInteraction | undefined {
-        return this.mapGestureInteractionByName.get(name);
+        return this.mapInteractionByName.get(name);
     }
 
     public unregisterInteraction(
         name: string
     ): void {
-        this.mapGestureInteractionByName.delete(name);
-    }
+        this.mapInteractionByName.delete(name);
+    }    
 
-    public getGestureInteractionType(){
-        return this.mapGestureInteractionByType.keys();
+    public getListInteractionTypeName(){
+        return this.mapInteractionByType.keys();
     }
 
     processGestureEvent(gestureEvent: BrimboriumGestureEvent) {
         // Process the gesture event through all registered interactions
-        for (const [name, interaction] of this.mapGestureInteractionByName) {
+        for (const [name, interaction] of this.mapInteractionByName) {
             const processed = interaction.process(gestureEvent);
             if (processed) {
                 // Interaction handled the event
@@ -194,7 +198,7 @@ export class BrimboriumGestureStateMaschine {
         if ((interactionEnabled) != null && (0 < interactionEnabled.size)) {
             if (result == null) { result = new Set(); }
             for (const interactionName of interactionEnabled) {
-                const interaction = this.mapGestureInteractionByType.get(interactionName);
+                const interaction = this.mapInteractionByType.get(interactionName);
                 if (interaction != null) {
                     const listGesture = interaction.getListNeededGesture(interactionName)
                     for (const gesture of listGesture) {
