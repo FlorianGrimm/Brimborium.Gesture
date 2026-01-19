@@ -14,7 +14,7 @@ export class BrimboriumGestureInteractionSecondaryClick extends BrimboriumGestur
         super("SecondaryClick", "Start")
     }
 
-    override process(gestureEvent: BrimboriumGestureEvent): boolean {
+    override processGestureEvent(gestureEvent: BrimboriumGestureEvent): boolean {
         // TODO
         return false;
     }

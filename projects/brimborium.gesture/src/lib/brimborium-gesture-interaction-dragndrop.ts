@@ -20,7 +20,7 @@ export class BrimboriumGestureInteractionDragNDrop extends BrimboriumGestureInte
         super("DragNDrop", "Start")
     }
 
-    override process(gestureEvent: BrimboriumGestureEvent): boolean {
+    override processGestureEvent(gestureEvent: BrimboriumGestureEvent): boolean {
         if (gestureEvent.eventType === "DragStart") {
             this.state = "Dragging";
             this.startPos = gestureEvent.clientPos;

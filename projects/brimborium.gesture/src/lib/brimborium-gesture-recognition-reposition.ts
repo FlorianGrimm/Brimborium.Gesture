@@ -7,7 +7,6 @@ import {
 import { BrimboriumGestureSourceEventChain, type BrimboriumGestureSourceEvent } from "./brimborium-gesture-source-event";
 import { createMouseBrimboriumGestureEvent } from "./brimborium-gesture-event";
 import { Point2D } from "./point2d";
-import type { BrimboriumGestureStateMaschine } from "./brimborium-gesture-state-maschine";
 import type { BrimboriumGestureRecognitionOutcome } from "./brimborium-gesture-recognition-outcome";
 import { createFaultBrimboriumGestureManager } from "./brimborium-gesture-utils";
 
@@ -29,9 +28,9 @@ export class BrimboriumGestureRecognitionReposition extends BrimboriumGestureRec
     }
 
     override initialize(
-        stateMaschine: BrimboriumGestureStateMaschine,
         manager: IBrimboriumGestureManager,
-        outcome: BrimboriumGestureRecognitionOutcome): void {
+        outcome: BrimboriumGestureRecognitionOutcome
+    ): void {
         this.manager = manager;
         this.outcome = outcome;
         this.ListEventRegister = [
@@ -47,13 +46,16 @@ export class BrimboriumGestureRecognitionReposition extends BrimboriumGestureRec
     }
 
     override resetRecognition(
-        finished: undefined | (IBrimboriumGestureRecognition<string>[]),
-        outcome: BrimboriumGestureRecognitionOutcome): void {
-        super.resetRecognition(finished, outcome);
+        finished: undefined | (IBrimboriumGestureRecognition<string>)
+        ): void {
+        super.resetRecognition(finished);
         this.state = "Start";
     }
 
     override processGestureSourceEvent(gestureSourceEvent: BrimboriumGestureSourceEvent): boolean {
+        const isEnabledReposition = gestureSourceEvent.getGestureEnabled()?.has('Reposition');
+        if (!isEnabledReposition) { return false; }
+
         // Reposition is similar to drag but typically for moving elements within a container
         // Mouse reposition
         if ("Start" === this.state) {
@@ -81,7 +83,7 @@ export class BrimboriumGestureRecognitionReposition extends BrimboriumGestureRec
                     this.state = 'Repositioning';
                     const gestureEvent = createMouseBrimboriumGestureEvent("DragStart", gestureSourceEvent, clientPos);
                     this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
-                    this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
+                    this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                     return true;
                 } else {
                     return false;
@@ -100,7 +102,7 @@ export class BrimboriumGestureRecognitionReposition extends BrimboriumGestureRec
                 const clientPos = new Point2D(mouseEvent.clientX, mouseEvent.clientY);
                 const gestureEvent = createMouseBrimboriumGestureEvent("DragMove", gestureSourceEvent, clientPos);
                 this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
-                this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
+                this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                 return true;
             }
             if ("mouseup" === gestureSourceEvent.eventType) {
@@ -108,7 +110,7 @@ export class BrimboriumGestureRecognitionReposition extends BrimboriumGestureRec
                 const clientPos = new Point2D(mouseEvent.clientX, mouseEvent.clientY);
                 const gestureEvent = createMouseBrimboriumGestureEvent("DragEnd", gestureSourceEvent, clientPos);
                 this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
-                this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
+                this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                 this.state = 'End';
                 return true;
             }
@@ -142,7 +144,7 @@ export class BrimboriumGestureRecognitionReposition extends BrimboriumGestureRec
                         this.state = 'Repositioning';
                         const gestureEvent = createMouseBrimboriumGestureEvent("DragStart", gestureSourceEvent, clientPos);
                         this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
-                        this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
+                        this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                         return true;
                     } else {
                         return false;
@@ -163,7 +165,7 @@ export class BrimboriumGestureRecognitionReposition extends BrimboriumGestureRec
                     const clientPos = new Point2D(touch.clientX, touch.clientY);
                     const gestureEvent = createMouseBrimboriumGestureEvent("DragMove", gestureSourceEvent, clientPos);
                     this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
-                    this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
+                    this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                     return true;
                 }
             }
@@ -174,7 +176,7 @@ export class BrimboriumGestureRecognitionReposition extends BrimboriumGestureRec
                     const clientPos = new Point2D(touch.clientX, touch.clientY);
                     const gestureEvent = createMouseBrimboriumGestureEvent("DragEnd", gestureSourceEvent, clientPos);
                     this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
-                    this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
+                    this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                     this.state = 'End';
                     return true;
                 }
@@ -185,7 +187,7 @@ export class BrimboriumGestureRecognitionReposition extends BrimboriumGestureRec
                 const clientPos = new Point2D(touch.clientX, touch.clientY);
                 const gestureEvent = createMouseBrimboriumGestureEvent("DragCancel", gestureSourceEvent, clientPos);
                 this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
-                this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
+                this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                 this.state = 'End';
                 return true;
             }

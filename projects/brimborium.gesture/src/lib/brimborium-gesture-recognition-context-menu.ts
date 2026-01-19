@@ -3,9 +3,9 @@ import {
     type BrimboriumGestureRecognitionName,
     type IBrimboriumGestureManager
 } from "./brimborium-gesture-consts";
-import type { BrimboriumGestureStateMaschine } from "./brimborium-gesture-state-maschine";
 import type { BrimboriumGestureRecognitionOutcome } from "./brimborium-gesture-recognition-outcome";
 import { createFaultBrimboriumGestureManager } from "./brimborium-gesture-utils";
+import { BrimboriumGestureSourceEvent } from "./brimborium-gesture-source-event";
 
 type BrimboriumGestureRecognitionContextMenuState
     = 'Start'
@@ -23,11 +23,11 @@ export class BrimboriumGestureRecognitionContextMenu extends BrimboriumGestureRe
     }
 
     override initialize(
-            stateMaschine: BrimboriumGestureStateMaschine,
-            manager: IBrimboriumGestureManager,
-            outcome: BrimboriumGestureRecognitionOutcome): void {
-            this.manager = manager;
-            this.outcome = outcome;
+        manager: IBrimboriumGestureManager,
+        outcome: BrimboriumGestureRecognitionOutcome
+    ): void {
+        this.manager = manager;
+        this.outcome = outcome;
         this.ListEventRegister = [
             // { gestureRecognition: gestureRecognitionName, eventType: "mousedown", active: true },
             // { gestureRecognition: gestureRecognitionName, eventType: "mousemove", active: true },
@@ -40,6 +40,13 @@ export class BrimboriumGestureRecognitionContextMenu extends BrimboriumGestureRe
             // { gestureRecognition: gestureRecognitionName, eventType: "touchcancel", active: false },
         ];
         this.needUpdateListEventRegister = true;
+    }
+
+
+    override processGestureSourceEvent(gestureSourceEvent: BrimboriumGestureSourceEvent): boolean {
+        const isEnabledReposition = gestureSourceEvent.getGestureEnabled()?.has('Reposition');
+        if (!isEnabledReposition) { return false; }
+        return false;
     }
 }
 

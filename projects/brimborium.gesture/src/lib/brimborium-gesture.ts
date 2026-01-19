@@ -1,10 +1,27 @@
-import { AfterViewInit, Directive, ElementRef, inject, input, OnDestroy, OnInit, output, signal } from '@angular/core';
-import { BrimboriumGestureInjectionToken } from './brimborium-gesture-inject-tokens';
-import { BrimboriumGestureList } from './brimborium-gesture-list';
-import type { BrimboriumGestureRoot } from './brimborium-gesture-root';
-import type { BrimboriumGestureHandle } from './brimborium-gesture-handle';
-import type { BrimboriumGestureTypeName, BrimboriumInteractionTypeName, SourceArrayValue } from './brimborium-gesture-consts';
-import { BrimboriumGestureEvent } from './brimborium-gesture-event';
+import {
+  AfterViewInit, Directive, ElementRef, inject, input, OnDestroy, OnInit, output, signal
+} from '@angular/core';
+import {
+  BrimboriumGestureInjectionToken
+} from './brimborium-gesture-inject-tokens';
+import {
+  type BrimboriumGestureList
+} from './brimborium-gesture-list';
+import {
+  type BrimboriumGestureRoot
+} from './brimborium-gesture-root';
+import {
+  type BrimboriumGestureHandle
+} from './brimborium-gesture-handle';
+import {
+  type ItemBrimboriumGestureRecognitionOutcome,
+  type BrimboriumInteractionTypeName,
+  type ItemBrimboriumGestureInteractionOutcome,
+  type SourceArrayValue
+} from './brimborium-gesture-consts';
+import {
+  BrimboriumGestureEvent
+} from './brimborium-gesture-event';
 
 @Directive({
   selector: '[brimboriumGesture]',
@@ -23,11 +40,11 @@ export class BrimboriumGesture<Kind extends string = any, Data = any> implements
 
   readonly gestureKind = input<Kind>();
   readonly gestureData = input<Data>();
-  readonly gestureEnabled = input<SourceArrayValue<BrimboriumGestureTypeName>>();
   readonly interactionEnabled = input<SourceArrayValue<BrimboriumInteractionTypeName>>();
 
-  readonly gestureEvent = output<BrimboriumGestureEvent>();
   readonly $isGestureHandle = signal<boolean>(false);
+  readonly gestureRecognitionOutcome = output<ItemBrimboriumGestureRecognitionOutcome>();
+  readonly interactionOutcome = output<ItemBrimboriumGestureInteractionOutcome>()
 
   gestureHandle: BrimboriumGestureHandle | undefined;
 
@@ -68,10 +85,21 @@ export class BrimboriumGesture<Kind extends string = any, Data = any> implements
     return result;
   }
 
-  processGestureEvent(gestureEvent: BrimboriumGestureEvent) {
-      this.gestureEvent.emit(gestureEvent);
-      this.gestureList?.processGestureEvent(gestureEvent);
-      this.gestureRoot.processGestureEvent(gestureEvent);
+  processGestureRecognitionOutcome(
+    gestureRecognitionOutcome: ItemBrimboriumGestureRecognitionOutcome
+  ) {
+    this.gestureRecognitionOutcome.emit(gestureRecognitionOutcome);
+    this.gestureList?.processGestureRecognitionOutcome(gestureRecognitionOutcome);
+    this.gestureRoot.processGestureRecognitionOutcome(gestureRecognitionOutcome);
+  }
+
+  
+  public processGestureInteractionOutcome(
+    gestureInteractionOutcome: ItemBrimboriumGestureInteractionOutcome
+  ) {
+    this.interactionOutcome.emit(gestureInteractionOutcome);
+    this.gestureList?.processGestureInteractionOutcome(gestureInteractionOutcome);
+    this.gestureRoot.processGestureInteractionOutcome(gestureInteractionOutcome);
   }
 
 }

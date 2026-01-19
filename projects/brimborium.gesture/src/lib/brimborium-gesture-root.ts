@@ -4,11 +4,16 @@ import { BrimboriumGestureManager } from './brimborium-gesture-manager';
 import { BrimboriumGestureNodeRef } from './brimborium-gesture-node-ref';
 import { EventManager } from '@angular/platform-browser';
 import { BrimboriumGestureEventRegistery } from './brimborium-gesture-event-registery';
-import { GestureSourceEventName, IBrimboriumGestureRoot, IsInterestingOn, MouseGestureEventName } from './brimborium-gesture-consts';
 import type { BrimboriumGestureHandle } from './brimborium-gesture-handle';
 import type { BrimboriumGesture } from './brimborium-gesture';
-import { BrimboriumGestureEvent } from './brimborium-gesture-event';
 import { BrimboriumGestureSourceEvent } from './brimborium-gesture-source-event';
+import {
+  GestureSourceEventName,
+  IBrimboriumGestureRoot,
+  IsInterestingOn,
+  ItemBrimboriumGestureInteractionOutcome,
+  ItemBrimboriumGestureRecognitionOutcome
+} from './brimborium-gesture-consts';
 
 @Directive({
   selector: '[brimboriumGestureRoot]',
@@ -21,7 +26,9 @@ export class BrimboriumGestureRoot implements IBrimboriumGestureRoot, OnInit, On
   public readonly element = inject(ElementRef);
   public readonly manager = inject(BrimboriumGestureManager);
   public readonly mapNodeRef = new WeakMap<HTMLElement, BrimboriumGestureNodeRef>();
-  public readonly gestureEvent = output<BrimboriumGestureEvent>();
+  public readonly gestureRecognitionOutcome = output<ItemBrimboriumGestureRecognitionOutcome>();
+  public readonly interactionOutcome = output<ItemBrimboriumGestureInteractionOutcome>()
+
 
   /* readonly eventElement = input<ElementRef>(); */
 
@@ -80,22 +87,22 @@ export class BrimboriumGestureRoot implements IBrimboriumGestureRoot, OnInit, On
   }
 
   readonly eventManager = inject(EventManager);
-
+  mapRemoveEventListener = new Map<string, Function>();
   addEventListener(eventName: string, active: boolean) {
     const handler = this.getEventHandler(eventName, active);
     if (handler == null) {
       return;
     } else {
-      this.eventManager.addEventListener(this.element.nativeElement, eventName, handler,  { passive: !active });
+      const dispose = this.eventManager.addEventListener(this.element.nativeElement, eventName, handler, { passive: !active });
+      this.mapRemoveEventListener.set(eventName, dispose);
+      console.log("addEventListener", eventName);
     }
   }
 
   removeEventListener(eventName: string, active: boolean) {
-    const handler = this.getEventHandler(eventName, active);
-    if (handler == null) {
-      return;
-    } else {
-      this.eventManager.addEventListener(this.element.nativeElement, eventName, handler, { passive: !active });
+    const dispose = this.mapRemoveEventListener.get(eventName);
+    if (dispose != null) {
+      dispose();
     }
   }
 
@@ -107,6 +114,7 @@ export class BrimboriumGestureRoot implements IBrimboriumGestureRoot, OnInit, On
 
   onGestureActive($event: Event) {
     const $eventType = $event.type as GestureSourceEventName;
+    // console.log("onGestureActive", $event);
 
     const targetElement = BrimboriumGestureSourceEvent.ensureTargetHTMLElement($event.target)
     const isInterestingOn = this.manager.isInterestingOn($eventType);
@@ -118,7 +126,7 @@ export class BrimboriumGestureRoot implements IBrimboriumGestureRoot, OnInit, On
         this.manager.eventPreventDefault($event);
       } else {
         const gestureEvent = new BrimboriumGestureSourceEvent($eventType, targetElement, $event.timeStamp, nodeRef, $event, this.manager);
-        this.manager.onGestureEvent(this, gestureEvent);
+        this.manager.onGestureSourceEvent(this, gestureEvent);
         if (gestureEvent.eventPreventDefault) {
           this.manager.eventPreventDefault($event);
         }
@@ -127,11 +135,8 @@ export class BrimboriumGestureRoot implements IBrimboriumGestureRoot, OnInit, On
   }
 
   onGesturePassive($event: MouseEvent) {
+    // console.log("onGesturePassive", $event);
     const $eventType = $event.type as GestureSourceEventName;
-    if (MouseGestureEventName.findIndex((item) => ($eventType === item)) < 0) {
-      console.error("onMouseGesture unexpected $event.type", $eventType);
-      return;
-    }
 
     const targetElement = BrimboriumGestureSourceEvent.ensureTargetHTMLElement($event.target)
     const isInterestingOn = this.manager.isInterestingOn($eventType);
@@ -143,12 +148,20 @@ export class BrimboriumGestureRoot implements IBrimboriumGestureRoot, OnInit, On
         //
       } else {
         const gestureEvent = new BrimboriumGestureSourceEvent($eventType, targetElement, $event.timeStamp, nodeRef, $event, this.manager);
-        this.manager.onGestureEvent(this, gestureEvent);
+        this.manager.onGestureSourceEvent(this, gestureEvent);
       }
     }
   }
-  
-  processGestureEvent(gestureEvent: BrimboriumGestureEvent): void {
-    this.gestureEvent.emit(gestureEvent);
+
+  public processGestureRecognitionOutcome(
+    gestureRecognitionOutcome: ItemBrimboriumGestureRecognitionOutcome
+  ) {
+    this.gestureRecognitionOutcome.emit(gestureRecognitionOutcome);
+  }
+
+  public processGestureInteractionOutcome(
+    gestureInteractionOutcome: ItemBrimboriumGestureInteractionOutcome
+  ) {
+    this.interactionOutcome.emit(gestureInteractionOutcome);
   }
 }

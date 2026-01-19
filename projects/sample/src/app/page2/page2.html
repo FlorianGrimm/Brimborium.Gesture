@@ -7,7 +7,7 @@
             <div brimboriumGesture style="position: relative;" 
                 [gestureKind]="'item'"
                 [gestureData]="item"
-                [interactionEnabled]="['PrimaryClick']"
+                [interactionEnabled]="['PrimaryClick', 'PrimaryDoubleClick', 'PrimaryLongClick']"
                 [style.left.px]="item.boundery.left"                [style.top.px]="item.boundery.top" [style.width.px]="item.boundery.width"
                 [style.height.px]="item.boundery.height" [style.background-color]="item.color"
                 >

@@ -7,7 +7,6 @@ import {
     BrimboriumGestureTypeName,
 } from "./brimborium-gesture-consts";
 import { BrimboriumGestureSourceEvent, BrimboriumGestureSourceEventChain } from "./brimborium-gesture-source-event";
-import type { BrimboriumGestureStateMaschine } from "./brimborium-gesture-state-maschine";
 import type { GestureEventRegister } from "./brimborium-gesture-event-registery";
 import { BrimboriumGestureRecognitionOutcome } from "./brimborium-gesture-recognition-outcome";
 
@@ -21,15 +20,15 @@ export class BrimboriumGestureRecognition<State extends string> implements IBrim
     ) {
         this.name = name;
         this.state = state;
-        this.outcome=new BrimboriumGestureRecognitionOutcome();
+        this.outcome=undefined;
     }
 
     getListSupportedGestureName(): BrimboriumGestureTypeName[] { return []; }
 
     initialize(
-        stateMaschine: BrimboriumGestureStateMaschine,
         manager: IBrimboriumGestureManager,
-        outcome: BrimboriumGestureRecognitionOutcome): void {
+        outcome: BrimboriumGestureRecognitionOutcome
+    ): void {
         this.outcome = outcome;
     }
 
@@ -41,20 +40,18 @@ export class BrimboriumGestureRecognition<State extends string> implements IBrim
 
     state: State;
 
-    readyforInputSourceEvent(): boolean { return false; }
+    readyforInputSourceEvent(): boolean { return true; }
 
     processGestureSourceEvent(gestureSourceEvent: BrimboriumGestureSourceEvent): boolean {
         return false;
     }
 
     resetRecognition(
-        finished: undefined | (IBrimboriumGestureRecognition<string>[]),
-        outcome: BrimboriumGestureRecognitionOutcome
+        finished: undefined | (IBrimboriumGestureRecognition<string>)
         ): void {
-        this.outcome = outcome;
         this.gestureEventChain = undefined;
     }
 
-    outcome: BrimboriumGestureRecognitionOutcome;
+    outcome: BrimboriumGestureRecognitionOutcome|undefined;
 }
 

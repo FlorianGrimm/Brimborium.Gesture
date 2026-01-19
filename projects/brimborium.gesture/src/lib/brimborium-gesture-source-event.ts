@@ -35,15 +35,14 @@ export class BrimboriumGestureSourceEvent {
         if (this._GestureEnabled !== null) { return this._GestureEnabled; }
 
         const interactionEnabled = this.getInteractionEnabled();
-        const gestureEnabled = this.nodeRef?.gesture?.gestureEnabled()
-        return this.manager.calcGestureEnabled(interactionEnabled, gestureEnabled);
+        return this.manager.calcGestureEnabled(interactionEnabled);
     }
 
     private _InteractionEnabled: Set<BrimboriumInteractionTypeName> | null | undefined = null;
-    public getInteractionEnabled() {
+    public getInteractionEnabled(): Set<BrimboriumInteractionTypeName> | undefined {
         if (this._InteractionEnabled !== null) { return this._InteractionEnabled; }
 
-        return combineStringAllowed<BrimboriumInteractionTypeName>(
+        return combineTypeEnabled<BrimboriumInteractionTypeName>(
             this.manager.getInteractionEnabled(),
             this.nodeRef?.gesture?.interactionEnabled()
         );
@@ -80,27 +79,30 @@ export class BrimboriumGestureSourceEventChain {
 }
 
 // BrimboriumGestureName
-export function combineStringAllowed<T>(
-    value1: SourceArrayValue<T> | null | undefined,
-    value2: SourceArrayValue<T> | null | undefined
+export function combineTypeEnabled<T>(
+    globalEnabled: SourceArrayValue<T> | null | undefined,
+    localEnabled: SourceArrayValue<T> | null | undefined
 ): Set<T> | undefined {
-    if (value1 == null && value2 == null) { return undefined }
-    let listValue1 = sourceArrayValueAsIteratorLike(value1);
-    let listValue2 = sourceArrayValueAsIteratorLike(value2);
+    if (globalEnabled == null && localEnabled == null) { return undefined }
+    let listValueGlobal = sourceArrayValueAsIteratorLike(globalEnabled);
+    let listValueLocal = sourceArrayValueAsIteratorLike(localEnabled);
 
-    if (listValue1 == null && listValue2 == null) {
+    if (listValueGlobal == null && listValueLocal == null) {
         return undefined;
     }
-    if (listValue1 != null && listValue2 == null) {
-        return new Set<T>(listValue1);
+    if (listValueGlobal != null && listValueLocal == null) {
+        return new Set<T>(listValueGlobal);
     }
-    if (listValue1 == null && listValue2 != null) {
-        return new Set<T>(listValue2);
+    if (listValueGlobal == null && listValueLocal != null) {
+        return undefined;
     }
-    if (listValue1 != null && listValue2 != null) {
-        let result = new Set<T>(listValue1);
-        for (const value of listValue2) {
-            result.add(value);
+    if (listValueGlobal != null && listValueLocal != null) {
+        let setGlobal = new Set<T>(listValueGlobal);
+        let result = new Set<T>();
+        for (const value of listValueLocal) {
+            if (setGlobal.has(value)){
+                result.add(value);
+            }
         }
         return result;
     }

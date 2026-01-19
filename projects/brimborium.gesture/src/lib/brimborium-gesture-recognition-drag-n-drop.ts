@@ -7,7 +7,6 @@ import {
 import { BrimboriumGestureSourceEventChain, type BrimboriumGestureSourceEvent } from "./brimborium-gesture-source-event";
 import { createMouseBrimboriumGestureEvent } from "./brimborium-gesture-event";
 import { Point2D } from "./point2d";
-import type { BrimboriumGestureStateMaschine } from "./brimborium-gesture-state-maschine";
 import type { BrimboriumGestureRecognitionOutcome } from "./brimborium-gesture-recognition-outcome";
 import { createFaultBrimboriumGestureManager } from "./brimborium-gesture-utils";
 
@@ -29,9 +28,9 @@ export class BrimboriumGestureRecognitionDragNDrop extends BrimboriumGestureReco
     }
 
     override initialize(
-        stateMaschine: BrimboriumGestureStateMaschine,
         manager: IBrimboriumGestureManager,
-        outcome: BrimboriumGestureRecognitionOutcome): void {
+        outcome: BrimboriumGestureRecognitionOutcome
+    ): void {
         this.manager = manager;
         this.outcome = outcome;
         this.ListEventRegister = [
@@ -47,13 +46,15 @@ export class BrimboriumGestureRecognitionDragNDrop extends BrimboriumGestureReco
     }
 
     override resetRecognition(
-        finished: undefined | (IBrimboriumGestureRecognition<string>[]),
-        outcome: BrimboriumGestureRecognitionOutcome): void {
-        super.resetRecognition(finished, outcome);
+        finished: undefined | (IBrimboriumGestureRecognition<string>)
+        ): void {
+        super.resetRecognition(finished);
         this.state = "Start";
     }
 
     override processGestureSourceEvent(gestureSourceEvent: BrimboriumGestureSourceEvent): boolean {
+        const isEnabledDragNDrop = gestureSourceEvent.getGestureEnabled()?.has('DragNDrop');
+        if (!isEnabledDragNDrop) { return false; }
         // Mouse drag
         if ("Start" === this.state) {
             if ("mousedown" === gestureSourceEvent.eventType) {
@@ -80,7 +81,7 @@ export class BrimboriumGestureRecognitionDragNDrop extends BrimboriumGestureReco
                     this.state = 'Dragging';
                     const gestureEvent = createMouseBrimboriumGestureEvent("DragStart", gestureSourceEvent, clientPos);
                     this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
-                    this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
+                    this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                     return true;
                 } else {
                     // Still within threshold
@@ -100,7 +101,7 @@ export class BrimboriumGestureRecognitionDragNDrop extends BrimboriumGestureReco
                 const clientPos = new Point2D(mouseEvent.clientX, mouseEvent.clientY);
                 const gestureEvent = createMouseBrimboriumGestureEvent("DragMove", gestureSourceEvent, clientPos);
                 this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
-                this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
+                this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                 return true;
             }
             if ("mouseup" === gestureSourceEvent.eventType) {
@@ -108,7 +109,7 @@ export class BrimboriumGestureRecognitionDragNDrop extends BrimboriumGestureReco
                 const clientPos = new Point2D(mouseEvent.clientX, mouseEvent.clientY);
                 const gestureEvent = createMouseBrimboriumGestureEvent("DragEnd", gestureSourceEvent, clientPos);
                 this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
-                this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
+                this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                 this.state = 'End';
                 return true;
             }
@@ -143,7 +144,7 @@ export class BrimboriumGestureRecognitionDragNDrop extends BrimboriumGestureReco
                         this.state = 'Dragging';
                         const gestureEvent = createMouseBrimboriumGestureEvent("DragStart", gestureSourceEvent, clientPos);
                         this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
-                        this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
+                        this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                         return true;
                     } else {
                         return false;
@@ -165,7 +166,7 @@ export class BrimboriumGestureRecognitionDragNDrop extends BrimboriumGestureReco
                     const clientPos = new Point2D(touch.clientX, touch.clientY);
                     const gestureEvent = createMouseBrimboriumGestureEvent("DragMove", gestureSourceEvent, clientPos);
                     this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
-                    this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
+                    this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                     return true;
                 }
             }
@@ -176,7 +177,7 @@ export class BrimboriumGestureRecognitionDragNDrop extends BrimboriumGestureReco
                     const clientPos = new Point2D(touch.clientX, touch.clientY);
                     const gestureEvent = createMouseBrimboriumGestureEvent("DragEnd", gestureSourceEvent, clientPos);
                     this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
-                    this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
+                    this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                     this.state = 'End';
                     return true;
                 }
@@ -187,7 +188,7 @@ export class BrimboriumGestureRecognitionDragNDrop extends BrimboriumGestureReco
                 const clientPos = new Point2D(touch.clientX, touch.clientY);
                 const gestureEvent = createMouseBrimboriumGestureEvent("DragCancel", gestureSourceEvent, clientPos);
                 this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
-                this.outcome.addOutcome({ type: "gestureEvent", gestureEvent: gestureEvent });
+                this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                 this.state = 'End';
                 return true;
             }

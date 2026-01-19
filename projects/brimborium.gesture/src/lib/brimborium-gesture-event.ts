@@ -1,4 +1,4 @@
-import type { BrimboriumGestureEventType } from "./brimborium-gesture-consts";
+import type { BrimboriumGestureEventType, BrimboriumInteractionTypeName } from "./brimborium-gesture-consts";
 import type { BrimboriumGestureNodeRef } from "./brimborium-gesture-node-ref";
 import { BrimboriumGestureSourceEvent } from "./brimborium-gesture-source-event";
 import { Point2D } from "./point2d";
@@ -6,6 +6,7 @@ import { Point2D } from "./point2d";
 export class BrimboriumGestureEvent {
     constructor(
         public eventType: BrimboriumGestureEventType,
+        public gestureSourceEvent: BrimboriumGestureSourceEvent,
         public target: EventTarget | null,
         public timeStamp: DOMHighResTimeStamp /* number */,
         public clientPos: Point2D | undefined,
@@ -16,6 +17,10 @@ export class BrimboriumGestureEvent {
         public altKey: boolean,
         public metaKey: boolean,
     ) {
+    }
+
+    public getInteractionEnabled(): Set<BrimboriumInteractionTypeName> | undefined {
+        return this.gestureSourceEvent.getInteractionEnabled();
     }
 }
 
@@ -35,6 +40,7 @@ export function createMouseBrimboriumGestureEvent(
     }
     const gestureEvent = new BrimboriumGestureEvent(
         eventType,
+        gestureSourceEvent,
         gestureSourceEvent.target,
         gestureSourceEvent.timeStamp,
         clientPos,
@@ -68,6 +74,7 @@ export function createTouchBrimboriumGestureEvent(
     }
     const gestureEvent = new BrimboriumGestureEvent(
         eventType,
+        gestureSourceEvent,
         gestureSourceEvent.target,
         gestureSourceEvent.timeStamp,
         clientPos,
@@ -92,6 +99,7 @@ export function createKeyboardBrimboriumGestureEvent(
     let metaKey: boolean = keyboardEvent.metaKey;
     const gestureEvent = new BrimboriumGestureEvent(
         eventType,
+        gestureSourceEvent,
         gestureSourceEvent.target,
         gestureSourceEvent.timeStamp,
         undefined,
@@ -104,7 +112,6 @@ export function createKeyboardBrimboriumGestureEvent(
     );
     return gestureEvent;
 }
-
 
 /*
 

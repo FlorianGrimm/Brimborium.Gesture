@@ -1,4 +1,4 @@
-import { NgModule } from "@angular/core";
+import { NgModule, Provider } from "@angular/core";
 import { BrimboriumGestureManager } from "./brimborium-gesture-manager";
 import { BrimboriumGesture } from "./brimborium-gesture";
 import { BrimboriumGestureHandle } from "./brimborium-gesture-handle";
@@ -22,6 +22,5 @@ import { BrimboriumGestureList } from "./brimborium-gesture-list";
         BrimboriumGestureRoot
     ]
 })
-export class BrimboriumGestureModule{
-
+export class BrimboriumGestureModule {
 }

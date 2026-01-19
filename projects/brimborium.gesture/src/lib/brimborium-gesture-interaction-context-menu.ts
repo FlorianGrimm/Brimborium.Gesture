@@ -14,7 +14,7 @@ export class BrimboriumGestureInteractionContextMenu extends BrimboriumGestureIn
         super("ContextMenu", "Start")
     }
 
-    override process(gestureEvent: BrimboriumGestureEvent): boolean {
+    override processGestureEvent(gestureEvent: BrimboriumGestureEvent): boolean {
         if (gestureEvent.eventType === "SecondaryClick") {
             this.state = "Active";
             // Context menu logic would go here
