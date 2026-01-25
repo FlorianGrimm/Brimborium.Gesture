@@ -33,6 +33,9 @@ import { GestureEventRegister } from './brimborium-gesture-event-registery';
 import { BrimboriumGestureInteractionOutcome } from './brimborium-gesture-interaction-outcome';
 import { BrimboriumInteractionEvent } from './brimborium-interaction-event';
 import { BrimboriumGestureRecognition } from './brimborium-gesture-recognition';
+import { BrimboriumGestureRecognitionMouse } from './brimborium-gesture-recognition-mouse';
+import { BrimboriumGestureRecognitionTouch } from './brimborium-gesture-recognition-touch';
+import { BrimboriumGestureRecognitionKeyboard } from './brimborium-gesture-recognition-keyboard';
 
 @Injectable({
   providedIn: 'root'
@@ -52,11 +55,18 @@ export class BrimboriumGestureManager implements IBrimboriumGestureManager {
     this.gestureRecognitionOutcome = new BrimboriumGestureRecognitionOutcome(this.processGestureRecognitionOutcome.bind(this));
     this.gestureInteractionOutcome = new BrimboriumGestureInteractionOutcome(this.processGestureInteractionOutcome.bind(this));
 
+    /*
     this.registerRecognition(new BrimboriumGestureRecognitionPrimaryClick());
     this.registerRecognition(new BrimboriumGestureRecognitionSecondaryClick());
     this.registerRecognition(new BrimboriumGestureRecognitionContextMenu());
     this.registerRecognition(new BrimboriumGestureRecognitionDragNDrop());
     this.registerRecognition(new BrimboriumGestureRecognitionReposition());
+    */
+    this.registerRecognition(new BrimboriumGestureRecognitionMouse(this));
+    this.registerRecognition(new BrimboriumGestureRecognitionTouch(this));
+    this.registerRecognition(new BrimboriumGestureRecognitionKeyboard(this));
+
+
     this.registerInteraction(new BrimboriumGestureInteractionPrimaryClick(this));
     this.registerInteraction(new BrimboriumGestureInteractionSecondaryClick());
     this.registerInteraction(new BrimboriumGestureInteractionContextMenu());

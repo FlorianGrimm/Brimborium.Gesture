@@ -17,6 +17,10 @@ export type BrimboriumGestureRecognitionName
     | 'ContextMenu'
     | 'DragNDrop'
     | 'Reposition'
+    | 'Mouse'
+    | 'Touch'
+    | 'Keyboard'
+    | 'Pointer'
     ;
 
 export interface IBrimboriumGestureManager {
