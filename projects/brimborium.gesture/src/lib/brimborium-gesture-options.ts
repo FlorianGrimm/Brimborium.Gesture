@@ -4,4 +4,5 @@ export class BrimboriumGestureOptions {
     touchDistanceThresholdToDrag: number = 10;
     doulbeClickThreshold: number = 300;
     longClickThreshold: number = 500;
+    dragTimeOutThreshold: number = 500;
 }

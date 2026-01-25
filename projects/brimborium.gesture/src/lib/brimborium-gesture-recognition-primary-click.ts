@@ -56,15 +56,21 @@ export class BrimboriumGestureRecognitionPrimaryClick extends BrimboriumGestureR
 
     override resetRecognition(
         finished: undefined | (IBrimboriumGestureRecognition<string>)
-        ): void {
+    ): void {
         super.resetRecognition(finished);
         this.state = "Start";
     }
 
+    handlerTimeout: number = 0;
+
     override processGestureSourceEvent(gestureSourceEvent: BrimboriumGestureSourceEvent): boolean {
-        const isEnabledPrimaryClick=gestureSourceEvent.getGestureEnabled()?.has('PrimaryClick');
-        const isEnabledPrimaryLongClick=gestureSourceEvent.getGestureEnabled()?.has('PrimaryLongClick');
-        if (!(isEnabledPrimaryClick || isEnabledPrimaryLongClick)){ return false;}
+        const isEnabledPrimaryClick = gestureSourceEvent.getGestureEnabled()?.has('PrimaryClick');
+        const isEnabledPrimaryLongClick = gestureSourceEvent.getGestureEnabled()?.has('PrimaryLongClick');
+        if (!(isEnabledPrimaryClick || isEnabledPrimaryLongClick)) { return false; }
+        if (this.handlerTimeout !== 0) {
+            clearTimeout(this.handlerTimeout);
+            this.handlerTimeout = 0;
+        }
         if ("Start" === this.state) {
             if ("mousedown" === gestureSourceEvent.eventType) {
                 gestureSourceEvent.preventDefault();
@@ -75,6 +81,15 @@ export class BrimboriumGestureRecognitionPrimaryClick extends BrimboriumGestureR
                 const gestureEvent = createMouseBrimboriumGestureEvent("MouseDown", gestureSourceEvent, clientPos);
                 this.gestureEventChain = new BrimboriumGestureSourceEventChain(gestureSourceEvent, gestureEvent.clientPos);
                 this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
+                const mouseDownEvent = gestureSourceEvent;
+                this.handlerTimeout = setTimeout(() => {
+                    this.handlerTimeout = 0;
+                    const mouseEvent = mouseDownEvent.$event as MouseEvent;
+                    const clientPos = new Point2D(mouseEvent.clientX, mouseEvent.clientY);
+                    const gestureEventDragStart = createMouseBrimboriumGestureEvent("DragStart", mouseDownEvent, clientPos);
+                    this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEventDragStart });
+
+                }, this.manager.options.dragTimeOutThreshold);
                 return true;
             }
         }
@@ -97,21 +112,21 @@ export class BrimboriumGestureRecognitionPrimaryClick extends BrimboriumGestureR
                 const mouseEvent = gestureSourceEvent.$event as MouseEvent;
                 const clientPos = new Point2D(mouseEvent.clientX, mouseEvent.clientY);
                 const diffTimeStamp = gestureSourceEvent.timeStamp - this.gestureEventChain!.initialEvent.timeStamp
-                if (diffTimeStamp < this.manager!.options.longClickThreshold){
-                    if (isEnabledPrimaryClick){
+                if (diffTimeStamp < this.manager!.options.longClickThreshold) {
+                    if (isEnabledPrimaryClick) {
                         const gestureEvent = createMouseBrimboriumGestureEvent("PrimaryClick", gestureSourceEvent, clientPos);
                         this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
                         this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                     }
                     this.state = 'End';
                 } else {
-                    if (isEnabledPrimaryLongClick){
+                    if (isEnabledPrimaryLongClick) {
                         const gestureEvent = createMouseBrimboriumGestureEvent("PrimaryLongClick", gestureSourceEvent, clientPos);
                         this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
                         this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                     }
                     this.state = 'End';
-                    this.outcome?.add({type:"gestureEffect", effect: new BrimboriumGestureResetRecognition(this, this.manager)})
+                    this.outcome?.add({ type: "gestureEffect", effect: new BrimboriumGestureResetRecognition(this, this.manager) })
                 }
                 return true;
             }
@@ -127,7 +142,7 @@ export class BrimboriumGestureRecognitionPrimaryClick extends BrimboriumGestureR
                     const clientPos = new Point2D(touch.clientX, touch.clientY);
                     const gestureEvent = createTouchBrimboriumGestureEvent("TouchDown", gestureSourceEvent, clientPos);
                     this.gestureEventChain = new BrimboriumGestureSourceEventChain(gestureSourceEvent, gestureEvent.clientPos);
-                    this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });                    
+                    this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                     return true;
                 }
             }
@@ -160,7 +175,7 @@ export class BrimboriumGestureRecognitionPrimaryClick extends BrimboriumGestureR
                     this.gestureEventChain!.appendEvent(gestureSourceEvent, clientPos);
                     this.outcome?.add({ type: "gestureEvent", gestureEvent: gestureEvent });
                     this.state = 'End';
-                    this.outcome?.add({type:"gestureEffect", effect: new BrimboriumGestureResetRecognition(this, this.manager)})
+                    this.outcome?.add({ type: "gestureEffect", effect: new BrimboriumGestureResetRecognition(this, this.manager) })
                     return true;
                 }
             }
@@ -189,7 +204,7 @@ export class BrimboriumGestureRecognitionPrimaryClick extends BrimboriumGestureR
             if ("keyup" === gestureSourceEvent.eventType) {
                 this.state = "End";
                 gestureSourceEvent.preventDefault();
-                this.outcome?.add({type:"gestureEffect", effect: new BrimboriumGestureResetRecognition(this, this.manager)})
+                this.outcome?.add({ type: "gestureEffect", effect: new BrimboriumGestureResetRecognition(this, this.manager) })
                 return true;
             }
         }
