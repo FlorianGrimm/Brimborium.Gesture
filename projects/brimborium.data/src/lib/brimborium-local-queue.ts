@@ -10,22 +10,46 @@ export class BrimboriumLocalQueue<T> {
         this.list = undefined;
     }
 
-    private isProcessingEnabled: boolean = true;
-
-    public suspend(): void {
-        this.isProcessingEnabled = false;
+    private _isProcessingEnabled: boolean = true;
+    private _listLock: number[] = [];
+    private _nextLock: number = 1;
+    public suspend(): number {
+        this._isProcessingEnabled = false;
+        const result = this._nextLock++
+        this._listLock.push(result);
+        return result
     }
 
-    public resume(): void {
-        this.isProcessingEnabled = true;
-        this.processList();
+    public resume(lock: number): boolean | undefined {
+        const index = this._listLock.indexOf(lock);
+        if (0 <= index) {
+            this._listLock.splice(index, 1);
+            if (0 === this._listLock.length) {
+                this._isProcessingEnabled = true;
+                this.processList();
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return undefined;
+        }
+    }
+
+    public transaction(fn:Function){
+        const lock = this.suspend();
+        try{
+            fn();
+        } finally{
+            this.resume(lock);
+        }
     }
 
     private processList(): void {
         if ((this.list != null) && (0 < this.list.length)) {
             const list = this.list;
             this.list = undefined;
-            
+
             for (const item of list) {
                 this.processItem(item);
             }
@@ -41,7 +65,7 @@ export class BrimboriumLocalQueue<T> {
             }
         }
 
-        if (this.isProcessingEnabled) {
+        if (this._isProcessingEnabled) {
             this.processItem(item);
         } else {
             (this.list ??= []).push(item);

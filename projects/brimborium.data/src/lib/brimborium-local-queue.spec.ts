@@ -20,14 +20,17 @@ describe('BrimboriumLocalQueue', () => {
       (i)=>{sideEffect.cnt++;},
       (i)=>(0<i)
     )
-    sut.suspend()
-    sut.add(1);
-    expect(sideEffect.cnt).toBe(0);
-
-    sut.add(-1);
-    expect(sideEffect.cnt).toBe(0);
-
-    sut.resume();
+    const lock = sut.suspend();
+    try{
+      sut.add(1);
+      expect(sideEffect.cnt).toBe(0);
+      
+      sut.add(-1);
+      expect(sideEffect.cnt).toBe(0);
+      
+    } finally{
+      sut.resume(lock);
+    }
     expect(sideEffect.cnt).toBe(1);
   });
 });
