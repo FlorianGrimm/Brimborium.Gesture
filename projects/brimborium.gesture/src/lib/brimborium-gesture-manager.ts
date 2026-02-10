@@ -1,4 +1,4 @@
-import { EventEmitter, Injectable } from '@angular/core';
+import { EventEmitter, Injectable, output } from '@angular/core';
 import { BrimboriumGestureDragEffect } from './brimborium-gesture-drag-effect';
 import { BrimboriumGestureOptions } from './brimborium-gesture-options';
 import {
@@ -14,7 +14,8 @@ import {
   IBrimboriumGestureInteraction,
   IBrimboriumGestureRecognition,
   ItemBrimboriumGestureInteractionOutcome,
-  ItemBrimboriumGestureRecognitionOutcome
+  ItemBrimboriumGestureRecognitionOutcome,
+  BrimboriumQueryInteractionEffect
 } from './brimborium-gesture-consts';
 import { sourceArrayValueAsIteratorLike, type BrimboriumGestureSourceEvent } from './brimborium-gesture-source-event';
 import { BrimboriumGestureEvent } from './brimborium-gesture-event';
@@ -66,12 +67,11 @@ export class BrimboriumGestureManager implements IBrimboriumGestureManager {
     this.registerRecognition(new BrimboriumGestureRecognitionTouch(this));
     this.registerRecognition(new BrimboriumGestureRecognitionKeyboard(this));
 
-
     this.registerInteraction(new BrimboriumGestureInteractionPrimaryClick(this));
-    this.registerInteraction(new BrimboriumGestureInteractionSecondaryClick());
-    this.registerInteraction(new BrimboriumGestureInteractionContextMenu());
-    this.registerInteraction(new BrimboriumGestureInteractionDragNDrop());
-    this.registerInteraction(new BrimboriumGestureInteractionReposition());
+    // this.registerInteraction(new BrimboriumGestureInteractionSecondaryClick(this));
+    // this.registerInteraction(new BrimboriumGestureInteractionContextMenu(this));
+    this.registerInteraction(new BrimboriumGestureInteractionDragNDrop(this));
+    // this.registerInteraction(new BrimboriumGestureInteractionReposition(this));
   }
 
   public gestureEventRegistery: IBrimboriumGestureEventRegistery | undefined;
@@ -176,7 +176,7 @@ export class BrimboriumGestureManager implements IBrimboriumGestureManager {
       }
     } while (resetRecognition);
 
-    this.gestureRecognitionOutcome.suspend();
+    const lock = this.gestureRecognitionOutcome.suspend();
     for (const [name, recognition] of listGestureRecognitionActive) {
       if (recognition.readyforInputSourceEvent()) {
         // const prevRecognitionState = recognition.state;
@@ -197,7 +197,7 @@ export class BrimboriumGestureManager implements IBrimboriumGestureManager {
         // skipped
       }
     }
-    this.gestureRecognitionOutcome.resume();
+    this.gestureRecognitionOutcome.resume(lock);
   }
 
   public processGestureRecognitionOutcome(
@@ -252,7 +252,7 @@ export class BrimboriumGestureManager implements IBrimboriumGestureManager {
 
   public processGestureEvent(gestureEvent: BrimboriumGestureEvent): void {
     console.log("processGestureEvent", gestureEvent);
-    this.gestureInteractionOutcome.suspend();
+    const lock = this.gestureInteractionOutcome.suspend();
     // Process the gesture event through all registered interactions
     for (const [name, interaction] of this.mapInteractionByName) {
       const processed = interaction.processGestureEvent(gestureEvent);
@@ -260,7 +260,7 @@ export class BrimboriumGestureManager implements IBrimboriumGestureManager {
         break;
       }
     }
-    this.gestureInteractionOutcome.resume();
+    this.gestureInteractionOutcome.resume(lock);
   }
 
   public processGestureInteractionOutcome(
@@ -285,6 +285,14 @@ export class BrimboriumGestureManager implements IBrimboriumGestureManager {
       // }
     }
   }
+    
+  queryInteractionEffect = new EventEmitter<BrimboriumQueryInteractionEffect>(false);
+  handleQueryInteractionEffect(eventQuery: BrimboriumQueryInteractionEffect): void {
+    if (eventQuery.nodeRef != null){
+      eventQuery.nodeRef.gesture?.handleQueryInteractionEffect(eventQuery);
+    }
+    this.queryInteractionEffect.emit(eventQuery);
+  }
 
   calcGestureEnabled(
     interactionEnabled: Set<BrimboriumInteractionTypeName> | undefined
@@ -306,14 +314,23 @@ export class BrimboriumGestureManager implements IBrimboriumGestureManager {
     return result;
   }
 
-
   public isInterestingOn(eventType: GestureSourceEventName): IsInterestingOn {
     return IsInterestingOn.Yes;
   }
 
-  public eventPreventDefault($event: Event): void {
+  public postProcessiongEvent: (($event: Event, stopPropagation: boolean)=>void)|undefined=undefined;
+  public onPostProcessiongEvent($event: Event, stopPropagation: boolean): void {
     // TODO: add the posiblity to override
-    $event.preventDefault();
+    if ($event.cancelable){
+      if (this.postProcessiongEvent!=null){
+        this.postProcessiongEvent($event, stopPropagation);
+      } else {
+        $event.preventDefault();
+        if (stopPropagation){
+          $event.stopPropagation();
+        }
+      }
+    }
   }
 
   /* TODO: later
@@ -333,9 +350,11 @@ export class BrimboriumGestureManager implements IBrimboriumGestureManager {
 
   readonly gestureEnabled = new Set<BrimboriumGestureTypeName>();
   public getGestureEnabled(): Set<BrimboriumGestureTypeName> {
+    debugger;
     return this.gestureEnabled;
   }
   public setGestureEnabled(name: BrimboriumGestureTypeName, isEnabled: boolean): boolean {
+    debugger;
     const current = this.gestureEnabled.has(name);
     if (current === isEnabled) {
       return false;

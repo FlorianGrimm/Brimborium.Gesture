@@ -14,9 +14,9 @@ type BrimboriumGestureInteractionPrimaryClickState
 
 export class BrimboriumGestureInteractionPrimaryClick extends BrimboriumGestureInteraction<BrimboriumGestureInteractionPrimaryClickState> {
     constructor(
-        public manager: BrimboriumGestureManager
+        manager: BrimboriumGestureManager
     ) {
-        super("PrimaryClick", "Start")
+        super("PrimaryClick", "Start", manager)
     }
 
     override getListSupportedInteractionName(): readonly BrimboriumInteractionTypeName[] {

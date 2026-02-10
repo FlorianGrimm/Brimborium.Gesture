@@ -1,4 +1,4 @@
-import type { Signal } from "@angular/core";
+import type { EventEmitter, Signal } from "@angular/core";
 import type { GestureEventRegister } from "./brimborium-gesture-event-registery";
 import type { BrimboriumGesture } from "./brimborium-gesture";
 import type { BrimboriumGestureOptions } from "./brimborium-gesture-options";
@@ -25,28 +25,43 @@ export type BrimboriumGestureRecognitionName
 
 export interface IBrimboriumGestureManager {
     readonly options: BrimboriumGestureOptions;
-    
+
     // getGestureAllowed(): SourceArrayValue<BrimboriumGestureName> | undefined;
     // getInteractionAllowed(): SourceArrayValue<BrimboriumInteractionName> | undefined;
     getGestureEnabled(): Set<BrimboriumGestureTypeName>;
     setGestureEnabled(name: BrimboriumGestureTypeName, isEnabled: boolean): boolean;
     getInteractionEnabled(): Set<BrimboriumInteractionTypeName>;
     setInteractionEnabled(name: BrimboriumInteractionTypeName, isEnabled: boolean): boolean;
-    
+
     calcGestureEnabled(
         interactionEnabled: Set<BrimboriumInteractionTypeName> | undefined
     ): Set<BrimboriumGestureTypeName> | undefined;
-    
+
     // readonly stateMaschine: BrimboriumGestureStateMaschine;
     // setGestureEventRegistery(gestureEventRegistery: IBrimboriumGestureEventRegistery): void;
     // isInterestingOn(eventType: GestureSourceEventName): IsInterestingOn;
     // onGestureEvent(gestureRoot: IBrimboriumGestureRoot, gestureEvent: GestureSourceEvent): void;
-    eventPreventDefault($event: Event): void;
-    
+
     processGestureEvent(gestureEvent: BrimboriumGestureEvent): void;
     resetGestureRecognition(callee: BrimboriumGestureRecognition<any>): void;
 
+    handleQueryInteractionEffect(eventQuery: BrimboriumQueryInteractionEffect): unknown;
+
+    postProcessiongEvent: (($event: Event, stopPropagation: boolean)=>void)|undefined;
+    onPostProcessiongEvent($event: Event, stopPropagation: boolean): void;
+
+    queryInteractionEffect : EventEmitter<BrimboriumQueryInteractionEffect>;
+    handleQueryInteractionEffect(eventQuery: BrimboriumQueryInteractionEffect): void;
+
     //createDragEffect(): IBrimboriumGestureEffect;
+}
+export type BrimboriumQueryInteractionEffect = {
+    eventType: string;
+    interactionEffect: null | IBrimboriumInteractionEffect;
+    nodeRef: BrimboriumGestureNodeRef | undefined;
+}
+export interface IBrimboriumInteractionEffect {
+
 }
 export interface IBrimboriumGestureRoot {
     registerGesture(element: HTMLElement, value: BrimboriumGesture): void;
@@ -168,14 +183,14 @@ export interface IBrimboriumGestureRecognition<State extends string = string> {
         finished: undefined | (IBrimboriumGestureRecognition<string>)
     ): void;
 
-    outcome: BrimboriumGestureRecognitionOutcome|undefined;
+    outcome: BrimboriumGestureRecognitionOutcome | undefined;
 }
 
 export type ArrayBrimboriumGestureRecognitionOutcome = ItemBrimboriumGestureRecognitionOutcome[];
 export type ItemBrimboriumGestureRecognitionOutcome
-    = { type: 'gestureEvent'; gestureEvent: BrimboriumGestureEvent; handled?:boolean; }
+    = { type: 'gestureEvent'; gestureEvent: BrimboriumGestureEvent; handled?: boolean; }
     // TODO: effect need a nodeRef
-    | { type: 'gestureEffect'; effect: IBrimboriumGestureEffect; handled?:boolean; }
+    | { type: 'gestureEffect'; effect: IBrimboriumGestureEffect; handled?: boolean; }
     ;
 
 export interface IBrimboriumGestureEffect {
@@ -184,8 +199,8 @@ export interface IBrimboriumGestureEffect {
 }
 
 export type ItemBrimboriumGestureInteractionOutcome
-    = { type: 'interactionEvent'; interactionEvent: BrimboriumInteractionEvent; handled?:boolean; }
-    | { type: 'iteractionEffect'; effect: IBrimboriumIteractionEffect; handled?:boolean; }
+    = { type: 'interactionEvent'; interactionEvent: BrimboriumInteractionEvent; handled?: boolean; }
+    | { type: 'iteractionEffect'; effect: IBrimboriumIteractionEffect; handled?: boolean; }
     ;
 
 export interface IBrimboriumIteractionEffect {
@@ -196,7 +211,7 @@ export interface IBrimboriumIteractionEffect {
 
 export interface IBrimboriumGestureInteraction<State = any> {
     name: string;
-    interactionOutcome: BrimboriumGestureInteractionOutcome|undefined;
+    interactionOutcome: BrimboriumGestureInteractionOutcome | undefined;
 
     getListSupportedInteractionName(): readonly BrimboriumInteractionTypeName[];
     getListNeededGesture(interactionName: BrimboriumInteractionTypeName): readonly BrimboriumGestureTypeName[];

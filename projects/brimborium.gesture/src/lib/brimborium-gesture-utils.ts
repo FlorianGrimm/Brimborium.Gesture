@@ -1,9 +1,12 @@
-import { BrimboriumGestureTypeName, BrimboriumInteractionTypeName, IBrimboriumGestureManager, SourceArrayValue } from "./brimborium-gesture-consts";
+import { BrimboriumGestureTypeName, BrimboriumInteractionTypeName, BrimboriumQueryInteractionEffect, IBrimboriumGestureManager, SourceArrayValue } from "./brimborium-gesture-consts";
 import { BrimboriumGestureEvent } from "./brimborium-gesture-event";
 import { BrimboriumGestureOptions } from "./brimborium-gesture-options";
 import { BrimboriumGestureRecognition } from "./brimborium-gesture-recognition";
 
 class FaultBrimboriumGestureManager implements IBrimboriumGestureManager {
+    queryInteractionEffect(eventQuery: BrimboriumQueryInteractionEffect): unknown {
+        throw new Error("Method not implemented.");
+    }
     public getGestureEnabled(): Set<BrimboriumGestureTypeName> { throw new Error("Not Allowed."); }
     public setGestureEnabled(name: BrimboriumGestureTypeName, isEnabled: boolean): boolean { throw new Error("Not Allowed."); }
     public getInteractionEnabled(): Set<BrimboriumInteractionTypeName> { throw new Error("Not Allowed."); }
@@ -13,7 +16,7 @@ class FaultBrimboriumGestureManager implements IBrimboriumGestureManager {
     public getInteractionAllowed(): SourceArrayValue<BrimboriumInteractionTypeName> | undefined { throw new Error("Not Allowed."); }
     public get options(): BrimboriumGestureOptions { throw new Error("Not Allowed."); }
     public set options(value: BrimboriumGestureOptions) { throw new Error("Not Allowed."); }
-    public eventPreventDefault($event: Event): void { throw new Error("Not Allowed."); }
+    public onPostProcessiongEvent($event: Event): void { throw new Error("Not Allowed."); }
     public processGestureEvent(gestureEvent: BrimboriumGestureEvent): void { throw new Error("Not Allowed."); }
     public resetGestureRecognition(callee: BrimboriumGestureRecognition<any>): void { throw new Error("Not Allowed."); }
 }

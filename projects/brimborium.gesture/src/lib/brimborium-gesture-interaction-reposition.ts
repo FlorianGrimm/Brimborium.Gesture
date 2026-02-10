@@ -1,7 +1,7 @@
 import { BrimboriumGestureInteraction } from "./brimborium-gesture-interaction";
 import type { BrimboriumGestureEvent } from "./brimborium-gesture-event";
 import type { Point2D } from "./point2d";
-import type { IBrimboriumGestureInteraction } from "./brimborium-gesture-consts";
+import type { BrimboriumGestureTypeName, BrimboriumInteractionTypeName, IBrimboriumGestureInteraction, IBrimboriumGestureManager } from "./brimborium-gesture-consts";
 
 type BrimboriumGestureInteractionRepositionState
     = 'Start'
@@ -14,8 +14,16 @@ export class BrimboriumGestureInteractionReposition extends BrimboriumGestureInt
     private currentPos: Point2D | undefined;
     private targetElement: HTMLElement | undefined;
 
-    constructor(){
-        super("Reposition", "Start")
+    constructor(manager:IBrimboriumGestureManager) {
+        super("Reposition", "Start", manager)
+    }
+
+    override getListSupportedInteractionName(): readonly BrimboriumInteractionTypeName[] {
+        return ['Reposition'] as const;
+    }
+
+    override getListNeededGesture(interactionName: BrimboriumInteractionTypeName): readonly BrimboriumGestureTypeName[] {
+        return ['Reposition'] as const;
     }
 
     override processGestureEvent(gestureEvent: BrimboriumGestureEvent): boolean {

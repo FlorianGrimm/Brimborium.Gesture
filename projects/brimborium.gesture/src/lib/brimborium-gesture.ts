@@ -17,7 +17,8 @@ import {
   type ItemBrimboriumGestureRecognitionOutcome,
   type BrimboriumInteractionTypeName,
   type ItemBrimboriumGestureInteractionOutcome,
-  type SourceArrayValue
+  type SourceArrayValue,
+  BrimboriumQueryInteractionEffect
 } from './brimborium-gesture-consts';
 import {
   BrimboriumGestureEvent
@@ -92,7 +93,6 @@ export class BrimboriumGesture<Kind extends string = any, Data = any> implements
     this.gestureList?.processGestureRecognitionOutcome(gestureRecognitionOutcome);
     this.gestureRoot.processGestureRecognitionOutcome(gestureRecognitionOutcome);
   }
-
   
   public processGestureInteractionOutcome(
     gestureInteractionOutcome: ItemBrimboriumGestureInteractionOutcome
@@ -102,4 +102,8 @@ export class BrimboriumGesture<Kind extends string = any, Data = any> implements
     this.gestureRoot.processGestureInteractionOutcome(gestureInteractionOutcome);
   }
 
+  queryInteractionEffect = output<BrimboriumQueryInteractionEffect>();
+  handleQueryInteractionEffect(eventQuery: BrimboriumQueryInteractionEffect): void {
+    this.queryInteractionEffect.emit(eventQuery);
+  }
 }

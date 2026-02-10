@@ -1,4 +1,4 @@
-import type { BrimboriumGestureTypeName, BrimboriumInteractionTypeName, IBrimboriumGestureInteraction } from "./brimborium-gesture-consts";
+import type { BrimboriumGestureTypeName, BrimboriumInteractionTypeName, IBrimboriumGestureInteraction, IBrimboriumGestureManager } from "./brimborium-gesture-consts";
 import type { BrimboriumGestureEvent } from "./brimborium-gesture-event";
 import type { BrimboriumGestureInteractionOutcome } from "./brimborium-gesture-interaction-outcome";
 import type { BrimboriumInteractionEvent } from "./brimborium-interaction-event";
@@ -33,14 +33,18 @@ export class BrimboriumGestureInteractionEventChain {
 
 export class BrimboriumGestureInteraction<State> implements IBrimboriumGestureInteraction<State> {
     readonly name: string;
+    readonly manager: IBrimboriumGestureManager;
+
     interactionOutcome: BrimboriumGestureInteractionOutcome | undefined;
     interactionEventChain: BrimboriumGestureInteractionEventChain;
 
     constructor(
         name: string,
-        state: State
+        state: State,
+        manager: IBrimboriumGestureManager
     ) {
         this.name = name;
+        this.manager = manager;
         this.state = state;
         this.interactionEventChain = new BrimboriumGestureInteractionEventChain();
     }

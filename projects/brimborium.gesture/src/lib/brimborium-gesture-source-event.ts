@@ -19,15 +19,20 @@ export class BrimboriumGestureSourceEvent {
 
     constructor(
         public eventType: GestureSourceEventName,
-        public target: EventTarget | null,
-        public timeStamp: DOMHighResTimeStamp /* number */,
+        public target: HTMLElement | null,
         public nodeRef: BrimboriumGestureNodeRef | undefined,
         public $event: Event,
         public manager: IBrimboriumGestureManager
     ) {
     }
 
+    
+    public get timeStamp(): number {
+        return this.$event.timeStamp;
+    }
+
     public eventPreventDefault: boolean = false;
+    public stopPropagation: boolean = false;
     public preventDefault() { this.eventPreventDefault = true; }
 
     private _GestureEnabled: Set<BrimboriumGestureTypeName> | null | undefined = null;

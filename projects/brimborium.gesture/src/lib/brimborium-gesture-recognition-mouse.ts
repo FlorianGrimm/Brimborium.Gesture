@@ -106,7 +106,8 @@ export class BrimboriumGestureRecognitionMouse extends BrimboriumGestureRecognit
         const extraInfo = getExtraInfo(gestureSourceEvent);
         if (extraInfo == null){return false;}
         const eventType = gestureSourceEvent.eventType;
-
+        console.log("RecognitionMouse:begin", {state:this.state,eventType:eventType});
+        
         if ("Start" === this.state){
             if ("mousedown" === eventType){
                 // Check if primary or secondary button is pressed
@@ -198,9 +199,10 @@ export class BrimboriumGestureRecognitionMouse extends BrimboriumGestureRecognit
                 // If we get here, the gesture wasn't enabled or didn't match
                 this.resetRecognition(undefined);
                 return false;
-            }
+            }            
             if ("mousemove" === eventType){
                 // Check if DragNDrop is enabled and if we've moved far enough to start dragging
+                console.log({isEnabledDragNDrop:isEnabledDragNDrop})
                 if (isEnabledDragNDrop && extraInfo.primary) {
                     const clientPos = extraInfo.clientPos;
                     const initialPos = this.gestureEventChain!.ListPoints[0];

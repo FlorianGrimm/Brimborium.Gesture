@@ -1,6 +1,6 @@
 import { BrimboriumGestureInteraction } from "./brimborium-gesture-interaction";
 import type { BrimboriumGestureEvent } from "./brimborium-gesture-event";
-import type { IBrimboriumGestureInteraction, IBrimboriumGestureRecognition } from "./brimborium-gesture-consts";
+import type { IBrimboriumGestureInteraction, IBrimboriumGestureManager, IBrimboriumGestureRecognition } from "./brimborium-gesture-consts";
 import type { BrimboriumGestureRecognitionOutcome } from "./brimborium-gesture-recognition-outcome";
 
 type BrimboriumGestureInteractionContextMenuState
@@ -10,8 +10,8 @@ type BrimboriumGestureInteractionContextMenuState
     ;
 
 export class BrimboriumGestureInteractionContextMenu extends BrimboriumGestureInteraction<BrimboriumGestureInteractionContextMenuState> {
-    constructor() {
-        super("ContextMenu", "Start")
+    constructor(manager: IBrimboriumGestureManager) {
+        super("ContextMenu", "Start", manager)
     }
 
     override processGestureEvent(gestureEvent: BrimboriumGestureEvent): boolean {

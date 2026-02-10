@@ -119,16 +119,16 @@ export class BrimboriumGestureRoot implements IBrimboriumGestureRoot, OnInit, On
     const targetElement = BrimboriumGestureSourceEvent.ensureTargetHTMLElement($event.target)
     const isInterestingOn = this.manager.isInterestingOn($eventType);
     if (IsInterestingOn.No == isInterestingOn || targetElement == null) {
-      this.manager.eventPreventDefault($event);
+      this.manager.onPostProcessiongEvent($event, false);
     } else {
       const nodeRef = this.getNodeRef($event.target) ?? undefined;
       if (nodeRef == null && IsInterestingOn.YesIfNodeRef == isInterestingOn) {
-        this.manager.eventPreventDefault($event);
+        this.manager.onPostProcessiongEvent($event, false);
       } else {
-        const gestureEvent = new BrimboriumGestureSourceEvent($eventType, targetElement, $event.timeStamp, nodeRef, $event, this.manager);
+        const gestureEvent = new BrimboriumGestureSourceEvent($eventType, targetElement, nodeRef, $event, this.manager);
         this.manager.onGestureSourceEvent(this, gestureEvent);
         if (gestureEvent.eventPreventDefault) {
-          this.manager.eventPreventDefault($event);
+          this.manager.onPostProcessiongEvent($event, gestureEvent.stopPropagation);
         }
       }
     }
@@ -147,7 +147,7 @@ export class BrimboriumGestureRoot implements IBrimboriumGestureRoot, OnInit, On
       if (nodeRef == null && IsInterestingOn.YesIfNodeRef == isInterestingOn) {
         //
       } else {
-        const gestureEvent = new BrimboriumGestureSourceEvent($eventType, targetElement, $event.timeStamp, nodeRef, $event, this.manager);
+        const gestureEvent = new BrimboriumGestureSourceEvent($eventType, targetElement, nodeRef, $event, this.manager);
         this.manager.onGestureSourceEvent(this, gestureEvent);
       }
     }

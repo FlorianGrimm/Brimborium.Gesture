@@ -19,6 +19,7 @@ export class App {
         PrimaryClick: true,
         PrimaryLongClick: true,
         PrimaryDoubleClick: true,
+        DragNDrop: true,
       });
   }
 }

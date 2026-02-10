@@ -1,7 +1,7 @@
 import { BrimboriumGestureInteraction } from "./brimborium-gesture-interaction";
 import type { BrimboriumGestureEvent } from "./brimborium-gesture-event";
 import type { Point2D } from "./point2d";
-import type { IBrimboriumGestureInteraction, IBrimboriumGestureRecognition } from "./brimborium-gesture-consts";
+import type { BrimboriumGestureTypeName, IBrimboriumInteractionEffect, BrimboriumInteractionTypeName, BrimboriumQueryInteractionEffect, IBrimboriumGestureInteraction, IBrimboriumGestureManager, IBrimboriumGestureRecognition } from "./brimborium-gesture-consts";
 import { BrimboriumGestureRecognitionOutcome } from "./brimborium-gesture-recognition-outcome";
 
 type BrimboriumGestureInteractionDragNDropState
@@ -15,16 +15,39 @@ export class BrimboriumGestureInteractionDragNDrop extends BrimboriumGestureInte
     private currentPos: Point2D | undefined;
     private draggedElement: HTMLElement | undefined;
     private dropTarget: HTMLElement | undefined;
+    interactionEffect: IBrimboriumInteractionEffect | null=null;
 
-    constructor() {
-        super("DragNDrop", "Start")
+    constructor(manager:IBrimboriumGestureManager) {
+        super("DragNDrop", "Start", manager)
+    }
+
+    override getListSupportedInteractionName(): readonly BrimboriumInteractionTypeName[] {
+        return ['DragNDrop'] as const;
+    }
+
+    override getListNeededGesture(interactionName: BrimboriumInteractionTypeName): readonly BrimboriumGestureTypeName[] {
+        return ['DragNDrop'] as const;
     }
 
     override processGestureEvent(gestureEvent: BrimboriumGestureEvent): boolean {
-        if (gestureEvent.eventType === "DragStart") {
-            this.state = "Dragging";
+        const eventType = gestureEvent.eventType;
+        console.log("DragNDrop begin", {state:this.state,eventType:eventType});
+        if (eventType === "DragStart") {
             this.startPos = gestureEvent.clientPos;
             this.currentPos = gestureEvent.clientPos;
+            const eventQuery:BrimboriumQueryInteractionEffect={
+                eventType: "DragStart",
+                interactionEffect:null,
+                nodeRef: gestureEvent.nodeRef
+            };
+            
+            this.manager.hanedleQueryInteractionEffect(eventQuery);
+            let interactionEffect: null|IBrimboriumInteractionEffect=eventQuery.interactionEffect;
+            if (eventQuery.interactionEffect==null){
+                interactionEffect=new BrimboriumGestureInteractionDragNDropEffect();
+            }            
+            this.state = "Dragging";
+            this.interactionEffect=interactionEffect;
 
             // Get the dragged element
             if (gestureEvent.target instanceof HTMLElement) {
@@ -32,11 +55,12 @@ export class BrimboriumGestureInteractionDragNDrop extends BrimboriumGestureInte
                 // Add dragging class or visual feedback
                 this.draggedElement.classList.add('dragging');
             }
+            console.log("DragNDrop-set", {state:this.state});
             return true;
         }
 
         if (this.state === "Dragging") {
-            if (gestureEvent.eventType === "DragMove") {
+            if (eventType === "DragMove") {
                 if (this.startPos && gestureEvent.clientPos && this.draggedElement) {
                     this.currentPos = gestureEvent.clientPos;
 
@@ -61,7 +85,7 @@ export class BrimboriumGestureInteractionDragNDrop extends BrimboriumGestureInte
                 return true;
             }
 
-            if (gestureEvent.eventType === "DragEnd") {
+            if (eventType === "DragEnd") {
                 this.state = "End";
 
                 if (this.draggedElement) {
@@ -81,10 +105,13 @@ export class BrimboriumGestureInteractionDragNDrop extends BrimboriumGestureInte
                         this.draggedElement.style.transform = '';
                     }
                 }
+
+                console.log("DragNDrop-set", {state:this.state});
+
                 return true;
             }
 
-            if (gestureEvent.eventType === "DragCancel") {
+            if (eventType === "DragCancel") {
                 this.state = "End";
 
                 // Cancel drag - reset everything
@@ -95,6 +122,9 @@ export class BrimboriumGestureInteractionDragNDrop extends BrimboriumGestureInte
                 if (this.dropTarget) {
                     this.dropTarget.classList.remove('drop-hover');
                 }
+
+                console.log("DragNDrop-set", {state:this.state});
+
                 return true;
             }
         }
@@ -111,3 +141,16 @@ export class BrimboriumGestureInteractionDragNDrop extends BrimboriumGestureInte
         this.dropTarget = undefined;
     }
 }
+
+/*
+
+export class BrimboriumGestureInteractionEffectDragNDrop implements IBrimboriumInteractionEffect{}
+export class BrimboriumGestureInteractionEffectReposition implements IBrimboriumInteractionEffect{}
+export class BrimboriumGestureInteractionEffectContextMenu implements IBrimboriumInteractionEffect{}
+
+
+ng g class BrimboriumGestureInteractionEffectDragNDrop --project Brimborium.Gesture
+ng g class BrimboriumGestureInteractionEffectReposition --project Brimborium.Gesture
+ng g class BrimboriumGestureInteractionEffectContextMenu --project Brimborium.Gesture
+
+*/
